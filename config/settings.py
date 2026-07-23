@@ -24,8 +24,7 @@ def env_bool(name, default=False):
 # ---------------------------------------------------------------------------
 SECRET_KEY = os.getenv("SECRET_KEY", "dev-inseguro-troque-em-producao")
 DEBUG = env_bool("DEBUG", True)
-ALLOWED_HOSTS = [h.strip() for h in os.getenv("ALLOWED_HOSTS", "127.0.0.1,localhost").split(",") if h.strip()]
-
+ALLOWED_HOSTS = ["127.0.0.1", "localhost", ".onrender.com"]
 CSRF_TRUSTED_ORIGINS = [
     o.strip()
     for o in os.getenv("CSRF_TRUSTED_ORIGINS", "").split(",")
