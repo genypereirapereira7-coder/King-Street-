@@ -1,0 +1,57 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block content %}
+<div class="page-head">
+  <h1>Estilos & Categorias</h1>
+  <span class="badge accent">{{ active_count }} ativo(s) na loja</span>
+</div>
+<p class="muted" style="margin-top:-.5rem">Ative os estilos que devem aparecer na loja. Somente os ativos ficam visíveis para o cliente.</p>
+
+<h3 style="font-size:1rem;margin-top:1.25rem">✅ Ativos na loja</h3>
+<div class="style-grid">
+  {% for c in active_categories %}
+    <div class="style-card on">
+      <div class="grow">
+        <div class="title">{{ c.name }}</div>
+        <div class="sub">{{ c.product_count }} produto(s){% if c.description %} · {{ c.description }}{% endif %}</div>
+      </div>
+      <div class="style-actions">
+        <a href="{% url 'dashboard:category_edit' c.pk %}" class="btn btn-sm">Editar</a>
+        <form method="post" action="{% url 'dashboard:category_toggle' c.pk %}">{% csrf_token %}
+          <button class="btn btn-sm">Desativar</button>
+        </form>
+      </div>
+    </div>
+  {% empty %}
+    <p class="dim">Nenhum estilo ativo. Ative abaixo para a loja mostrar produtos.</p>
+  {% endfor %}
+</div>
+
+<h3 style="font-size:1rem;margin-top:1.5rem">➕ Disponíveis para ativar</h3>
+<div class="style-grid">
+  {% for c in inactive_categories %}
+    <div class="style-card">
+      <div class="grow">
+        <div class="title">{{ c.name }}</div>
+        <div class="sub">{% if c.description %}{{ c.description }}{% else %}{{ c.product_count }} produto(s){% endif %}</div>
+      </div>
+      <div class="style-actions">
+        <form method="post" action="{% url 'dashboard:category_toggle' c.pk %}">{% csrf_token %}
+          <button class="btn btn-gold btn-sm">Ativar</button>
+        </form>
+      </div>
+    </div>
+  {% empty %}
+    <p class="dim">Todos os estilos já estão ativos.</p>
+  {% endfor %}
+</div>
+
+<h3 style="font-size:1rem;margin-top:1.5rem">Criar novo estilo</h3>
+<form method="post" class="card" style="max-width:520px">
+  {% csrf_token %}
+  <div class="field"><label>Nome</label>{{ form.name }}{{ form.name.errors }}</div>
+  <div class="field"><label>Descrição / grupo</label>{{ form.description }}</div>
+  <label class="field"><input type="checkbox" name="is_active"> Ativar na loja imediatamente</label>
+  <button class="btn btn-primary btn-block">Criar estilo</button>
+</form>
+{% endblock %}

@@ -1,0 +1,152 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load store_extras %}
+
+{% block content %}
+<div class="page-head">
+  <h1>{% if creating %}Novo produto{% else %}Editar produto{% endif %}</h1>
+  <a href="{% url 'dashboard:product_list' %}" class="btn btn-sm">← Voltar</a>
+</div>
+
+<div class="grid-2">
+  <form method="post" class="card">
+    {% csrf_token %}
+    <div class="field"><label>Nome</label>{{ form.name }}{{ form.name.errors }}</div>
+    <div class="field"><label>Descrição</label>{{ form.description }}{{ form.description.errors }}</div>
+    <div class="field"><label>Preço</label>{{ form.price }}{{ form.price.errors }}</div>
+    <div class="field">
+      <label>Categoria</label>
+      <div class="combo" id="cat-combo">
+        <input type="text" class="field-input" id="cat-search" placeholder="🔎 Pesquisar categoria..." autocomplete="off">
+        <input type="hidden" name="category" id="cat-value" value="{{ form.category.value|default:'' }}">
+        <div class="combo-list" id="cat-list" hidden>
+          {% for cat in form.fields.category.queryset %}
+            <div class="combo-item" data-id="{{ cat.pk }}" data-name="{{ cat.name }}">{{ cat.name }}</div>
+          {% empty %}
+            <div class="combo-empty">Nenhuma categoria. Crie em "Estilos & Categorias".</div>
+          {% endfor %}
+        </div>
+      </div>
+      {{ form.category.errors }}
+    </div>
+    <div class="field"><label>Status</label>{{ form.status }}</div>
+    <button class="btn btn-primary btn-block">Salvar</button>
+  </form>
+
+  {% if not creating %}
+  <div>
+    <div class="card">
+      <h3 style="font-size:1rem">Variações (cor + tamanho + estoque)</h3>
+      <table class="table">
+        <thead><tr><th>Cor</th><th>Tamanho</th><th>Estoque</th><th></th></tr></thead>
+        <tbody>
+          {% for v in product.variations.all %}
+          <tr>
+            <td>{{ v.color }}</td>
+            <td>{{ v.size }}</td>
+            <td>
+              <form method="post" action="{% url 'dashboard:variation_update_stock' v.pk %}" style="display:flex;gap:.3rem">
+                {% csrf_token %}
+                <input type="number" name="stock_quantity" value="{{ v.stock_quantity }}" min="0" style="width:80px">
+                <button class="btn btn-sm">OK</button>
+              </form>
+            </td>
+            <td>
+              <form method="post" action="{% url 'dashboard:variation_delete' v.pk %}">{% csrf_token %}
+                <button class="btn btn-sm btn-danger">✕</button>
+              </form>
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="4" class="dim">Nenhuma variação. Adicione abaixo.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+      <form method="post" action="{% url 'dashboard:variation_add' product.pk %}" style="display:flex;gap:.5rem;margin-top:.75rem;flex-wrap:wrap">
+        {% csrf_token %}
+        <input type="text" name="color" placeholder="Cor" required style="flex:1">
+        <input type="text" name="size" placeholder="Tamanho" required style="flex:1">
+        <input type="number" name="stock_quantity" placeholder="Qtd" value="0" min="0" style="width:80px">
+        <button class="btn btn-primary btn-sm">+ Adicionar</button>
+      </form>
+    </div>
+
+    <div class="card" style="margin-top:1rem">
+      <h3 style="font-size:1rem">Imagens (até 3)</h3>
+      <div class="quick-actions">
+        {% for img in product.images.all %}
+          <div class="img-chip">
+            <img src="{{ img.image.url }}" alt="">
+            <form method="post" action="{% url 'dashboard:image_delete' img.pk %}" class="rm">{% csrf_token %}
+              <button class="btn btn-sm btn-danger">✕</button>
+            </form>
+          </div>
+        {% empty %}
+          <p class="dim">Nenhuma imagem.</p>
+        {% endfor %}
+      </div>
+      {% if can_add_image %}
+      <form method="post" action="{% url 'dashboard:image_add' product.pk %}" enctype="multipart/form-data" style="display:flex;gap:.5rem;margin-top:.75rem">
+        {% csrf_token %}
+        <input type="file" name="image" accept="image/*" required>
+        <button class="btn btn-primary btn-sm">Enviar</button>
+      </form>
+      {% else %}
+        <p class="dim" style="margin-top:.5rem">Limite de 3 imagens atingido.</p>
+      {% endif %}
+    </div>
+
+    <form method="post" action="{% url 'dashboard:product_delete' product.pk %}" style="margin-top:1rem"
+          onsubmit="return confirm('Excluir este produto?');">
+      {% csrf_token %}
+      <button class="btn btn-danger btn-block">Excluir produto</button>
+    </form>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  (function () {
+    var combo = document.getElementById("cat-combo");
+    if (!combo) return;
+    var search = document.getElementById("cat-search");
+    var hidden = document.getElementById("cat-value");
+    var list = document.getElementById("cat-list");
+    var items = Array.prototype.slice.call(list.querySelectorAll(".combo-item"));
+
+    // Preenche o campo com a categoria já selecionada (edição/erro de validação)
+    if (hidden.value) {
+      var sel = items.find(function (i) { return i.dataset.id === hidden.value; });
+      if (sel) search.value = sel.dataset.name;
+    }
+
+    var open = function () { list.hidden = false; };
+    var close = function () { list.hidden = true; };
+
+    search.addEventListener("focus", open);
+    search.addEventListener("input", function () {
+      var q = search.value.trim().toLowerCase();
+      var exact = null;
+      items.forEach(function (i) {
+        var name = i.dataset.name.toLowerCase();
+        i.style.display = name.indexOf(q) > -1 ? "" : "none";
+        if (name === q) exact = i;
+      });
+      hidden.value = exact ? exact.dataset.id : "";
+      open();
+    });
+    items.forEach(function (i) {
+      i.addEventListener("click", function () {
+        hidden.value = i.dataset.id;
+        search.value = i.dataset.name;
+        close();
+      });
+    });
+    document.addEventListener("click", function (e) {
+      if (!combo.contains(e.target)) close();
+    });
+  })();
+</script>
+{% endblock %}

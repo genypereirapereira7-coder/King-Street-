@@ -1,0 +1,20 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block content %}
+<div class="page-head">
+  <h1>Editar cupom</h1>
+  <a href="{% url 'dashboard:coupon_list' %}" class="btn btn-sm">← Voltar</a>
+</div>
+
+<form method="post" class="card" style="max-width:480px">
+  {% csrf_token %}
+  <div class="field"><label>Código</label>{{ form.code }}{{ form.code.errors }}</div>
+  <div class="field"><label>Tipo</label>{{ form.type }}</div>
+  <div class="field"><label>Valor</label>{{ form.value }}</div>
+  <div class="field"><label>Início</label>{{ form.start_date }}</div>
+  <div class="field"><label>Vencimento</label>{{ form.end_date }}</div>
+  <div class="field"><label>Usos máximos (opcional)</label>{{ form.max_uses }}</div>
+  <label class="field">{{ form.is_active }} Ativo</label>
+  <button class="btn btn-primary btn-block">Salvar</button>
+</form>
+{% endblock %}

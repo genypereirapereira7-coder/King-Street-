@@ -1,0 +1,65 @@
+{% extends 'store/base_store.html' %}
+{% load store_extras %}
+
+{% block title %}Carrinho · {{ STORE_NAME }}{% endblock %}
+
+{% block content %}
+<div class="section-title"><h2>Carrinho</h2></div>
+
+{% if items %}
+  <div class="card">
+    {% for item in items %}
+    <div class="cart-item">
+      {% if item.product.main_image %}
+        <img src="{{ item.product.main_image.image.url }}" alt="">
+      {% else %}
+        <div class="placeholder">👑</div>
+      {% endif %}
+      <div>
+        <div class="product-name">{{ item.product.name }}</div>
+        <div class="dim">{{ item.variation.label }}</div>
+        <div class="text-accent"><strong>{{ item.total_price|brl }}</strong></div>
+        <form method="post" action="{% url 'store:cart_update' %}" style="display:flex;gap:.4rem;margin-top:.4rem;align-items:center">
+          {% csrf_token %}
+          <input type="hidden" name="variation_id" value="{{ item.variation_id }}">
+          <input type="number" name="quantity" value="{{ item.quantity }}" min="1" max="{{ item.variation.stock_quantity }}" style="width:70px" onchange="this.form.requestSubmit()">
+          <span class="dim" style="font-size:.8rem">de {{ item.variation.stock_quantity }}</span>
+        </form>
+      </div>
+      <form method="post" action="{% url 'store:cart_remove' %}">
+        {% csrf_token %}
+        <input type="hidden" name="variation_id" value="{{ item.variation_id }}">
+        <button class="btn btn-sm btn-danger">✕</button>
+      </form>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="card summary" style="margin-top:1rem">
+    {% if coupon %}
+      <form method="post" action="{% url 'store:cart_remove_coupon' %}" style="display:flex;gap:.5rem;margin-bottom:.75rem;align-items:center">
+        {% csrf_token %}
+        <span class="badge accent">Cupom {{ coupon.code }}</span>
+        <button class="btn btn-sm btn-danger">Remover cupom</button>
+      </form>
+    {% else %}
+      <form method="post" action="{% url 'store:cart_apply_coupon' %}" style="display:flex;gap:.5rem;margin-bottom:.75rem">
+        {% csrf_token %}
+        <input type="text" name="code" placeholder="Cupom de desconto">
+        <button class="btn btn-sm">Aplicar</button>
+      </form>
+    {% endif %}
+
+    <div class="summary-row"><span class="muted">Subtotal</span><span>{{ subtotal|brl }}</span></div>
+    {% if discount %}<div class="summary-row"><span class="muted">Desconto {% if coupon %}({{ coupon.code }}){% endif %}</span><span>- {{ discount|brl }}</span></div>{% endif %}
+    <div class="summary-row summary-total"><span>Total</span><span>{{ total|brl }}</span></div>
+
+    <a href="{% url 'store:checkout' %}" class="btn btn-primary btn-block" style="margin-top:1rem">Finalizar pedido</a>
+  </div>
+{% else %}
+  <div class="empty">
+    <p>Seu carrinho está vazio.</p>
+    <a href="{% url 'store:catalog' %}" class="btn btn-primary">Ver catálogo</a>
+  </div>
+{% endif %}
+{% endblock %}

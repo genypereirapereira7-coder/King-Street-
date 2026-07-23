@@ -1,0 +1,34 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load store_extras %}
+
+{% block content %}
+<div class="page-head"><h1>Avaliações</h1></div>
+
+<div class="list">
+  {% for r in page_obj %}
+    <div class="list-row">
+      <div class="grow">
+        <div class="title">{{ r.product.name }} <span class="stars">{{ r.rating|stars }}</span></div>
+        <div class="sub">{{ r.customer.name }} · {{ r.created_at|date:"d/m/Y" }}{% if r.comment %} · {{ r.comment|truncatechars:60 }}{% endif %}</div>
+      </div>
+      {% if r.is_hidden %}<span class="badge off">Oculta</span>{% else %}<span class="badge on">Visível</span>{% endif %}
+      <form method="post" action="{% url 'dashboard:review_toggle' r.pk %}">{% csrf_token %}
+        <button class="btn btn-sm">{% if r.is_hidden %}Exibir{% else %}Ocultar{% endif %}</button>
+      </form>
+      <form method="post" action="{% url 'dashboard:review_delete' r.pk %}" onsubmit="return confirm('Excluir avaliação?');">{% csrf_token %}
+        <button class="btn btn-sm btn-danger">✕</button>
+      </form>
+    </div>
+  {% empty %}
+    <div class="empty">Nenhuma avaliação.</div>
+  {% endfor %}
+</div>
+
+{% if page_obj.has_other_pages %}
+<div class="pagination">
+  {% if page_obj.has_previous %}<a class="btn btn-sm" href="?page={{ page_obj.previous_page_number }}">←</a>{% endif %}
+  <span class="btn btn-sm">{{ page_obj.number }}/{{ page_obj.paginator.num_pages }}</span>
+  {% if page_obj.has_next %}<a class="btn btn-sm" href="?page={{ page_obj.next_page_number }}">→</a>{% endif %}
+</div>
+{% endif %}
+{% endblock %}

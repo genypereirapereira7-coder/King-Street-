@@ -1,0 +1,64 @@
+{% extends 'store/base_store.html' %}
+{% load static %}
+
+{% block title %}Catálogo · {{ STORE_NAME }}{% endblock %}
+
+{% block content %}
+<section class="catalog-banner" aria-label="King Street">
+  <span class="cb-glow"></span>
+  <div class="cb-content">
+    <img src="{% static 'img/logo-cut.png' %}" alt="{{ STORE_NAME }}" class="cb-logo" width="120" height="120">
+    <div class="cb-text">
+      <h1 class="wm"><span class="wm-king">King</span><span class="wm-street">Street</span></h1>
+      <p class="cb-tag">Líder em fits streetwear</p>
+    </div>
+  </div>
+  <span class="cb-sheen"></span>
+</section>
+
+<section class="catalog-head">
+  <nav class="chips" aria-label="Categorias">
+    <a href="{% url 'store:catalog' %}" class="chip {% if not current_category %}active{% endif %}">Todos</a>
+    {% for c in categories %}
+      <a href="{% url 'store:catalog' %}?categoria={{ c.slug }}" class="chip {% if current_category == c.slug %}active{% endif %}">{{ c.name }}</a>
+    {% endfor %}
+  </nav>
+
+  <form method="get" class="catalog-bar">
+    {% if query %}<input type="hidden" name="q" value="{{ query }}">{% endif %}
+    {% if current_category %}<input type="hidden" name="categoria" value="{{ current_category }}">{% endif %}
+    <span class="result-count">{{ page_obj.paginator.count }} produto{{ page_obj.paginator.count|pluralize }}{% if query %} · "{{ query }}"{% endif %}</span>
+    <label class="order-select">
+      <span>Ordenar</span>
+      <select name="ordem" onchange="this.form.requestSubmit()">
+        <option value="recentes" {% if current_ordering == 'recentes' %}selected{% endif %}>Mais recentes</option>
+        <option value="menor-preco" {% if current_ordering == 'menor-preco' %}selected{% endif %}>Menor preço</option>
+        <option value="maior-preco" {% if current_ordering == 'maior-preco' %}selected{% endif %}>Maior preço</option>
+        <option value="nome" {% if current_ordering == 'nome' %}selected{% endif %}>Nome</option>
+      </select>
+    </label>
+  </form>
+</section>
+
+{% if page_obj.object_list %}
+  <div class="grid">
+    {% for product in page_obj %}
+      {% include 'store/_product_card.html' %}
+    {% endfor %}
+  </div>
+
+  {% if page_obj.has_other_pages %}
+  <div class="pagination">
+    {% if page_obj.has_previous %}
+      <a class="btn btn-sm" href="?{% if querystring %}{{ querystring }}&{% endif %}page={{ page_obj.previous_page_number }}">← Anterior</a>
+    {% endif %}
+    <span class="btn btn-sm">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+    {% if page_obj.has_next %}
+      <a class="btn btn-sm" href="?{% if querystring %}{{ querystring }}&{% endif %}page={{ page_obj.next_page_number }}">Próxima →</a>
+    {% endif %}
+  </div>
+  {% endif %}
+{% else %}
+  <div class="empty">Nenhum produto encontrado{% if query %} para "{{ query }}"{% endif %}.</div>
+{% endif %}
+{% endblock %}

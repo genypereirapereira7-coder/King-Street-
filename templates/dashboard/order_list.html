@@ -1,0 +1,41 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load store_extras %}
+
+{% block content %}
+<div class="page-head"><h1>Pedidos</h1></div>
+
+<div class="toolbar">
+  <form method="get" action="">
+    <input type="search" name="q" placeholder="Número, cliente ou telefone" value="{{ query }}">
+    <select name="status" onchange="this.form.submit()">
+      <option value="">Todos os status</option>
+      {% for value, label in status_choices %}
+        <option value="{{ value }}" {% if status == value %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+    <button class="btn btn-sm">Filtrar</button>
+  </form>
+</div>
+
+<div class="list">
+  {% for order in page_obj %}
+    <a href="{% url 'dashboard:order_detail' order.number %}" class="list-row">
+      <div class="grow">
+        <div class="title">{{ order.number }} · {{ order.customer.name }}</div>
+        <div class="sub">{{ order.created_at|date:"d/m/Y H:i" }} · {{ order.total|brl }} · {{ order.get_delivery_method_display }}</div>
+      </div>
+      <span class="st st-{{ order.status }}">{{ order.get_status_display }}</span>
+    </a>
+  {% empty %}
+    <div class="empty">Nenhum pedido.</div>
+  {% endfor %}
+</div>
+
+{% if page_obj.has_other_pages %}
+<div class="pagination">
+  {% if page_obj.has_previous %}<a class="btn btn-sm" href="?page={{ page_obj.previous_page_number }}&q={{ query }}&status={{ status }}">←</a>{% endif %}
+  <span class="btn btn-sm">{{ page_obj.number }}/{{ page_obj.paginator.num_pages }}</span>
+  {% if page_obj.has_next %}<a class="btn btn-sm" href="?page={{ page_obj.next_page_number }}&q={{ query }}&status={{ status }}">→</a>{% endif %}
+</div>
+{% endif %}
+{% endblock %}

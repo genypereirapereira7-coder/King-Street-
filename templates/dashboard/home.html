@@ -1,0 +1,58 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load store_extras %}
+
+{% block content %}
+<div class="page-head"><h1>Dashboard</h1></div>
+
+<div class="kpi-grid">
+  <div class="kpi"><div class="val">{{ data.orders_today }}</div><div class="lbl">Pedidos hoje</div></div>
+  <div class="kpi"><div class="val">{{ data.total_orders }}</div><div class="lbl">Total de pedidos</div></div>
+  <div class="kpi"><div class="val">{{ data.orders_preparing }}</div><div class="lbl">Em preparação</div></div>
+  <div class="kpi"><div class="val">{{ data.total_products }}</div><div class="lbl">Produtos</div></div>
+</div>
+
+<div class="grid-2" style="margin-top:1.25rem">
+  <div class="card">
+    <div class="page-head"><h3 style="font-size:1rem">Últimos pedidos</h3><a href="{% url 'dashboard:order_list' %}" class="muted">Ver todos →</a></div>
+    <div class="list">
+      {% for order in data.recent_orders %}
+        <a href="{% url 'dashboard:order_detail' order.number %}" class="list-row">
+          <div class="grow">
+            <div class="title">{{ order.number }} · {{ order.customer.name }}</div>
+            <div class="sub">{{ order.created_at|date:"d/m H:i" }} · {{ order.total|brl }}</div>
+          </div>
+          <span class="st st-{{ order.status }}">{{ order.get_status_display }}</span>
+        </a>
+      {% empty %}
+        <p class="dim">Nenhum pedido ainda.</p>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="card">
+    <h3 style="font-size:1rem">Baixo estoque ({{ data.low_stock_count }})</h3>
+    <div class="list">
+      {% for v in data.low_stock %}
+        <a href="{% url 'dashboard:product_edit' v.product_id %}" class="list-row">
+          <div class="grow">
+            <div class="title">{{ v.product.name }}</div>
+            <div class="sub">{{ v.color }} · {{ v.size }}</div>
+          </div>
+          <span class="badge {% if v.stock_quantity == 0 %}off{% else %}accent{% endif %}">{{ v.stock_quantity }} un.</span>
+        </a>
+      {% empty %}
+        <p class="dim">Estoque em dia 👍</p>
+      {% endfor %}
+    </div>
+
+    <h3 style="font-size:1rem;margin-top:1.25rem">Mais vendidos</h3>
+    <div class="list">
+      {% for b in data.best_sellers %}
+        <div class="list-row"><div class="grow"><div class="title">{{ b.product_name }}</div></div><span class="badge accent">{{ b.qty }} un.</span></div>
+      {% empty %}
+        <p class="dim">Sem vendas registradas.</p>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

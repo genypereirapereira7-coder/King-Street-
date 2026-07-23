@@ -1,0 +1,114 @@
+{% extends 'store/base_store.html' %}
+{% load store_extras %}
+
+{% block title %}{{ product.name }} · {{ STORE_NAME }}{% endblock %}
+
+{% block content %}
+<div class="product-detail">
+  <div>
+    <div class="gallery-main">
+      {% if product.main_image %}
+        <img src="{{ product.main_image.image.url }}" alt="{{ product.name }}">
+      {% else %}
+        <div class="product-thumb"><span class="placeholder">👑</span></div>
+      {% endif %}
+    </div>
+    {% if product.images.count > 1 %}
+    <div class="gallery-thumbs">
+      {% for img in product.images.all %}
+        <img src="{{ img.image.url }}" data-full="{{ img.image.url }}" alt="">
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+
+  <div>
+    <div class="product-cat">{{ product.category.name }}</div>
+    <h1>{{ product.name }}</h1>
+    <div class="detail-price">{{ product.price|brl }}</div>
+    <p class="muted">{{ product.description|linebreaksbr }}</p>
+
+    <form method="post" action="{% url 'store:cart_add' %}" id="add-form">
+      {% csrf_token %}
+      <input type="hidden" name="variation_id" id="variation_id" value="">
+      <input type="hidden" name="next" value="{% url 'store:cart' %}">
+
+      <div id="variation-picker" data-variations='[{% for v in variations %}{"id":{{ v.id }},"color":"{{ v.color|escapejs }}","size":"{{ v.size|escapejs }}","stock":{{ v.stock_quantity }}}{% if not forloop.last %},{% endif %}{% endfor %}]'>
+        <div class="option-group">
+          <h4>Cor</h4>
+          <div class="pills">
+            {% for color in product.colors %}
+              <span class="pill" data-color="{{ color }}">{{ color }}</span>
+            {% endfor %}
+          </div>
+        </div>
+        <div class="option-group">
+          <h4>Tamanho</h4>
+          <div class="pills">
+            {% for size in product.sizes %}
+              <span class="pill" data-size="{{ size }}">{{ size }}</span>
+            {% endfor %}
+          </div>
+        </div>
+        <p id="variation-feedback" class="dim" style="font-size:.85rem">Escolha cor e tamanho</p>
+      </div>
+
+      <div class="option-group">
+        <h4>Quantidade</h4>
+        <div class="qty">
+          <button type="button" class="minus">−</button>
+          <input type="number" name="quantity" value="1" min="1" max="99">
+          <button type="button" class="plus">+</button>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block" id="add-to-cart-btn" disabled>Adicionar ao carrinho</button>
+    </form>
+  </div>
+</div>
+
+<section style="margin-top:2rem">
+  <div class="section-title"><h2>Avaliações</h2></div>
+
+  {% if can_review %}
+  <div class="card" style="margin-bottom:1rem">
+    <h3 style="font-size:1rem">Avaliar este produto</h3>
+    <form method="post" action="{% url 'store:review_create' product.slug %}" enctype="multipart/form-data">
+      {% csrf_token %}
+      <div class="field">
+        <label>Nota (1 a 5)</label>
+        <select name="rating" class="field-input">
+          {% for n in "54321"|make_list %}<option value="{{ n }}">{{ n }} ★</option>{% endfor %}
+        </select>
+      </div>
+      <div class="field">
+        <label>Comentário</label>
+        <textarea name="comment" rows="3"></textarea>
+      </div>
+      <div class="field">
+        <label>Fotos (até 3)</label>
+        <input type="file" name="images" accept="image/*" multiple>
+      </div>
+      <button class="btn btn-primary">Enviar avaliação</button>
+    </form>
+  </div>
+  {% endif %}
+
+  {% for review in reviews %}
+    <div class="review">
+      <div class="review-head">
+        <strong>{{ review.customer.name }}</strong>
+        <span class="stars">{{ review.rating|stars }}</span>
+      </div>
+      {% if review.comment %}<p class="muted">{{ review.comment }}</p>{% endif %}
+      {% if review.images.all %}
+        <div class="review-imgs">
+          {% for img in review.images.all %}<img src="{{ img.image.url }}" alt="">{% endfor %}
+        </div>
+      {% endif %}
+    </div>
+  {% empty %}
+    <p class="dim">Este produto ainda não tem avaliações.</p>
+  {% endfor %}
+</section>
+{% endblock %}

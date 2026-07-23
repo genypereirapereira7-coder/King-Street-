@@ -1,0 +1,20 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Erro</title>
+  <link rel="stylesheet" href="{% static 'css/theme.css' %}">
+</head>
+<body>
+  <div class="empty" style="min-height:100vh;display:grid;place-items:center">
+    <div>
+      <div style="font-size:3rem">⚠️</div>
+      <h2>Algo deu errado</h2>
+      <p class="muted">Tente novamente em instantes.</p>
+      <a href="/" class="btn btn-primary">Voltar à loja</a>
+    </div>
+  </div>
+</body>
+</html>

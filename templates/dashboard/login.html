@@ -1,0 +1,30 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#000000">
+  <title>Entrar · {{ STORE_NAME }}</title>
+  <link rel="stylesheet" href="{% static 'css/theme.css' %}?v=8">
+  <link rel="stylesheet" href="{% static 'css/dashboard.css' %}?v=8">
+</head>
+<body>
+  <div class="login-wrap">
+    <div class="card login-card">
+      <div class="brand">{{ STORE_NAME }} 👑</div>
+      {% if messages %}
+        <div class="messages">
+          {% for m in messages %}<div class="msg {{ m.tags }}">{{ m }}</div>{% endfor %}
+        </div>
+      {% endif %}
+      <form method="post">
+        {% csrf_token %}
+        <div class="field"><label>Usuário</label><input type="text" name="username" autofocus></div>
+        <div class="field"><label>Senha</label><input type="password" name="password"></div>
+        <button class="btn btn-primary btn-block">Entrar</button>
+      </form>
+    </div>
+  </div>
+</body>
+</html>

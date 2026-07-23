@@ -1,0 +1,77 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load store_extras %}
+
+{% block content %}
+<div class="page-head">
+  <h1>Pedido {{ order.number }}</h1>
+  <a href="{% url 'dashboard:order_list' %}" class="btn btn-sm">← Voltar</a>
+</div>
+
+<div class="grid-2">
+  <div>
+    <div class="card">
+      <h3 style="font-size:1rem">Cliente</h3>
+      <p class="title">{{ order.customer.name }}</p>
+      <p class="muted">📞 {{ order.customer.phone }}</p>
+      {% if order.is_delivery %}
+        <p class="muted">📍 {{ order.delivery_address }}</p>
+      {% else %}
+        <p class="muted">🏪 Retirada na loja</p>
+      {% endif %}
+      <div class="quick-actions" style="margin-top:.75rem">
+        <a href="{{ whatsapp_url }}" target="_blank" class="btn btn-wa btn-sm">💬 WhatsApp</a>
+        <button class="btn btn-sm" onclick="copyText('{{ order.customer.phone }}')">Copiar telefone</button>
+        {% if order.is_delivery %}<button class="btn btn-sm" onclick="copyText('{{ order.delivery_address|escapejs }}')">Copiar endereço</button>{% endif %}
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:1rem">
+      <h3 style="font-size:1rem">Itens</h3>
+      {% for item in order.items.all %}
+        <div class="summary-row"><span class="muted">{{ item.quantity }}x {{ item.product_name }} <span class="dim">{{ item.variation_label }}</span></span><span>{{ item.total_price|brl }}</span></div>
+      {% endfor %}
+      <div class="summary-row"><span class="muted">Subtotal</span><span>{{ order.subtotal|brl }}</span></div>
+      {% if order.discount %}<div class="summary-row"><span class="muted">Desconto {{ order.coupon_code }}</span><span>- {{ order.discount|brl }}</span></div>{% endif %}
+      <div class="summary-row summary-total"><span>Total</span><span>{{ order.total|brl }}</span></div>
+      {% if order.notes %}<p class="muted" style="margin-top:.5rem">Obs.: {{ order.notes }}</p>{% endif %}
+    </div>
+  </div>
+
+  <div>
+    <div class="card">
+      <h3 style="font-size:1rem">Status</h3>
+      <p><span class="st st-{{ order.status }}">{{ order.get_status_display }}</span></p>
+      <form method="post" action="{% url 'dashboard:order_change_status' order.number %}">
+        {% csrf_token %}
+        <div class="field"><label>Novo status</label>
+          <select name="status">
+            {% for value, label in status_choices %}
+              <option value="{{ value }}" {% if order.status == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="field"><label>Observação (opcional)</label><input type="text" name="note"></div>
+        <button class="btn btn-primary btn-block">Atualizar status</button>
+      </form>
+    </div>
+
+    <div class="card" style="margin-top:1rem">
+      <h3 style="font-size:1rem">Histórico</h3>
+      {% for h in order.history.all %}
+        <div class="summary-row">
+          <span class="muted">{{ h.get_new_status_display }}{% if h.note %} — {{ h.note }}{% endif %}</span>
+          <span class="dim">{{ h.created_at|date:"d/m H:i" }}</span>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  function copyText(t) {
+    navigator.clipboard.writeText(t).then(function(){ alert("Copiado!"); });
+  }
+</script>
+{% endblock %}

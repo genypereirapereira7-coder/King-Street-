@@ -1,0 +1,111 @@
+/* ==========================================================================
+   King Street — Painel administrativo (Mobile First / PWA)
+   ========================================================================== */
+.admin-shell { min-height: 100vh; }
+
+/* Topbar */
+.admin-top {
+  position: sticky; top: 0; z-index: 50; height: 56px;
+  display: flex; align-items: center; gap: .75rem; padding: 0 14px;
+  background: rgba(0,0,0,.92); border-bottom: 1px solid var(--border); backdrop-filter: blur(10px);
+}
+.admin-top .brand { font-size: 1.05rem; font-weight: 800; }
+.admin-top .spacer { flex: 1; }
+
+/* Layout */
+.admin-body { display: block; max-width: var(--maxw); margin: 0 auto; padding: 1rem 14px 90px; }
+@media (min-width: 900px) {
+  .admin-layout { display: grid; grid-template-columns: 230px 1fr; gap: 1.25rem; align-items: start; max-width: var(--maxw); margin: 0 auto; padding: 1rem 14px; }
+  .admin-body { padding: 0; }
+}
+
+/* Sidebar (desktop) */
+.admin-nav { display: none; }
+@media (min-width: 900px) {
+  .admin-nav { display: block; position: sticky; top: 72px; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: .5rem; }
+  .admin-nav a { display: flex; align-items: center; gap: .6rem; padding: .6rem .75rem; border-radius: var(--radius-sm); color: var(--text-muted); font-size: .92rem; }
+  .admin-nav a:hover { background: var(--bg-elev); color: var(--text); }
+  .admin-nav a.active { background: var(--bg-elev); color: var(--accent); }
+}
+
+/* Bottom nav (mobile) */
+.admin-bottom {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 40; display: flex; justify-content: space-around;
+  background: rgba(0,0,0,.96); border-top: 1px solid var(--border); padding: .35rem 0; backdrop-filter: blur(10px);
+}
+.admin-bottom a { display: grid; place-items: center; gap: 2px; font-size: .66rem; color: var(--text-dim); padding: .2rem .5rem; }
+.admin-bottom a .ico { font-size: 1.2rem; }
+.admin-bottom a.active { color: var(--accent); }
+@media (min-width: 900px) { .admin-bottom { display: none; } }
+
+/* KPIs */
+.kpi-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+@media (min-width: 700px) { .kpi-grid { grid-template-columns: repeat(4, 1fr); } }
+.kpi { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; }
+.kpi .val { font-size: 1.7rem; font-weight: 800; color: var(--text); }
+.kpi .lbl { font-size: .78rem; color: var(--text-muted); margin-top: .2rem; }
+
+/* Listas / tabelas */
+.list { display: grid; gap: .6rem; }
+.list-row {
+  display: flex; align-items: center; gap: .75rem; padding: .8rem 1rem;
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-sm);
+  /* Em telas estreitas os botões de ação descem para a linha de baixo em vez de estourar */
+  flex-wrap: wrap;
+}
+.list-row .grow { flex: 1; min-width: 0; }
+.list-row .title { font-weight: 600; font-size: .95rem; }
+.list-row .sub { font-size: .8rem; color: var(--text-dim); }
+.thumb-sm { width: 46px; height: 46px; border-radius: 8px; object-fit: cover; background: var(--bg-elev); display: grid; place-items: center; color: var(--text-dim); }
+
+.table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+.table th, .table td { text-align: left; padding: .6rem .5rem; border-bottom: 1px solid var(--border); }
+.table th { color: var(--text-muted); font-weight: 600; font-size: .8rem; }
+
+/* Status pills */
+.st { padding: .2rem .55rem; border-radius: 999px; font-size: .72rem; font-weight: 700; border: 1px solid var(--border-strong); white-space: nowrap; }
+.st-received { color: var(--info); border-color: rgba(74,144,217,.4); }
+.st-preparing { color: var(--warning); border-color: rgba(224,167,38,.4); }
+.st-out_for_delivery { color: var(--accent); border-color: var(--accent); }
+.st-delivered { color: var(--success); border-color: rgba(63,191,111,.4); }
+.st-canceled { color: var(--danger); border-color: rgba(229,72,77,.4); }
+
+.page-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; gap: .75rem; }
+.toolbar { display: flex; gap: .5rem; margin-bottom: 1rem; flex-wrap: wrap; }
+.toolbar form { flex: 1; display: flex; gap: .5rem; }
+
+.grid-2 { display: grid; gap: 1rem; }
+@media (min-width: 800px) { .grid-2 { grid-template-columns: 1fr 1fr; } }
+
+.quick-actions { display: flex; flex-wrap: wrap; gap: .5rem; }
+.img-chip { position: relative; width: 88px; }
+.img-chip img { width: 88px; height: 88px; object-fit: cover; border-radius: 10px; border: 1px solid var(--border); }
+.img-chip .rm { position: absolute; top: -6px; right: -6px; }
+
+/* Grade de estilos (ativar/desativar) */
+.style-grid { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); margin-top: .6rem; }
+.style-card {
+  display: flex; align-items: center; gap: .6rem; padding: .7rem .85rem;
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-sm);
+}
+.style-card.on { border-color: rgba(63,191,111,.4); }
+.style-card .title { font-weight: 600; font-size: .92rem; }
+.style-card .sub { font-size: .74rem; color: var(--text-dim); }
+.style-actions { display: flex; gap: .35rem; align-items: center; }
+
+/* Combobox de busca (seleção de categoria) */
+.combo { position: relative; }
+.combo-list {
+  position: absolute; z-index: 30; left: 0; right: 0; top: calc(100% + 4px);
+  max-height: 240px; overflow-y: auto;
+  background: var(--bg-elev); border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm); box-shadow: var(--shadow);
+}
+.combo-item { padding: .6rem .8rem; cursor: pointer; font-size: .92rem; border-bottom: 1px solid var(--border); }
+.combo-item:last-child { border-bottom: 0; }
+.combo-item:hover { background: var(--bg-card); color: var(--accent); }
+.combo-empty { padding: .6rem .8rem; font-size: .85rem; color: var(--text-dim); }
+
+.login-wrap { min-height: 100vh; display: grid; place-items: center; padding: 1rem; }
+.login-card { width: 100%; max-width: 360px; }
+.login-card .brand { font-size: 1.6rem; text-align: center; margin-bottom: 1.25rem; font-weight: 800; }

@@ -1,0 +1,54 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load store_extras %}
+
+{% block content %}
+<div class="page-head">
+  <h1>Produtos</h1>
+  <a href="{% url 'dashboard:product_create' %}" class="btn btn-primary btn-sm">+ Novo</a>
+</div>
+
+<div class="toolbar">
+  <form method="get" action="">
+    <input type="search" name="q" placeholder="Buscar por nome" value="{{ query }}">
+    <button class="btn btn-sm">Buscar</button>
+  </form>
+</div>
+
+<div class="list">
+  {% for product in page_obj %}
+    <div class="list-row">
+      <div class="thumb-sm">
+        {% if product.main_image %}<img src="{{ product.main_image.image.url }}" class="thumb-sm" alt="">{% else %}👑{% endif %}
+      </div>
+      <a href="{% url 'dashboard:product_edit' product.pk %}" class="grow">
+        <div class="title">{{ product.name }}</div>
+        <div class="sub">{{ product.category.name }} · {{ product.price|brl }} · estoque {{ product.total_stock }}</div>
+      </a>
+      {% if product.status == 'active' %}
+        <span class="badge on">Ativo</span>
+      {% else %}
+        <span class="badge off">Inativo</span>
+      {% endif %}
+      <form method="post" action="{% url 'dashboard:product_delete' product.pk %}"
+            onsubmit="return confirm('Excluir {{ product.name|escapejs }}? Esta ação não pode ser desfeita.');">
+        {% csrf_token %}
+        <button class="btn btn-sm btn-danger" title="Excluir produto" aria-label="Excluir {{ product.name }}">🗑</button>
+      </form>
+      <form method="post" action="{% url 'dashboard:product_toggle_status' product.pk %}">
+        {% csrf_token %}<input type="hidden" name="next" value="{% url 'dashboard:product_list' %}">
+        <button class="btn btn-sm">{% if product.status == 'active' %}Inativar{% else %}Ativar{% endif %}</button>
+      </form>
+    </div>
+  {% empty %}
+    <div class="empty">Nenhum produto cadastrado.</div>
+  {% endfor %}
+</div>
+
+{% if page_obj.has_other_pages %}
+<div class="pagination">
+  {% if page_obj.has_previous %}<a class="btn btn-sm" href="?page={{ page_obj.previous_page_number }}&q={{ query }}">←</a>{% endif %}
+  <span class="btn btn-sm">{{ page_obj.number }}/{{ page_obj.paginator.num_pages }}</span>
+  {% if page_obj.has_next %}<a class="btn btn-sm" href="?page={{ page_obj.next_page_number }}&q={{ query }}">→</a>{% endif %}
+</div>
+{% endif %}
+{% endblock %}

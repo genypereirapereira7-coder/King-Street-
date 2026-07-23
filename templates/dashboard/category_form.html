@@ -1,0 +1,16 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block content %}
+<div class="page-head">
+  <h1>Editar categoria</h1>
+  <a href="{% url 'dashboard:category_list' %}" class="btn btn-sm">← Voltar</a>
+</div>
+
+<form method="post" class="card" style="max-width:480px">
+  {% csrf_token %}
+  <div class="field"><label>Nome</label>{{ form.name }}{{ form.name.errors }}</div>
+  <div class="field"><label>Descrição</label>{{ form.description }}</div>
+  <label class="field">{{ form.is_active }} Ativa</label>
+  <button class="btn btn-primary btn-block">Salvar</button>
+</form>
+{% endblock %}

@@ -1,0 +1,41 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load store_extras %}
+
+{% block content %}
+<div class="page-head">
+  <h1>{{ customer.name }}</h1>
+  <a href="{% url 'dashboard:customer_list' %}" class="btn btn-sm">← Voltar</a>
+</div>
+
+<div class="grid-2">
+  <div class="card">
+    <h3 style="font-size:1rem">Dados</h3>
+    <p class="muted">📞 {{ customer.phone }}</p>
+    {% if customer.full_address %}<p class="muted">📍 {{ customer.full_address }}</p>{% endif %}
+    <p class="dim">Primeiro pedido: {{ customer.first_order_date|date:"d/m/Y"|default:"—" }}</p>
+    <p class="dim">Última compra: {{ customer.last_order_date|date:"d/m/Y"|default:"—" }}</p>
+    <div class="quick-actions" style="margin-top:.75rem">
+      <button class="btn btn-sm" onclick="copyText('{{ customer.phone }}')">Copiar telefone</button>
+      {% if customer.full_address %}<button class="btn btn-sm" onclick="copyText('{{ customer.full_address|escapejs }}')">Copiar endereço</button>{% endif %}
+    </div>
+  </div>
+
+  <div class="card">
+    <h3 style="font-size:1rem">Pedidos ({{ customer.total_orders }})</h3>
+    <div class="list">
+      {% for order in orders %}
+        <a href="{% url 'dashboard:order_detail' order.number %}" class="list-row">
+          <div class="grow"><div class="title">{{ order.number }}</div><div class="sub">{{ order.created_at|date:"d/m/Y" }} · {{ order.total|brl }}</div></div>
+          <span class="st st-{{ order.status }}">{{ order.get_status_display }}</span>
+        </a>
+      {% empty %}<p class="dim">Sem pedidos.</p>{% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  function copyText(t){ navigator.clipboard.writeText(t).then(function(){ alert("Copiado!"); }); }
+</script>
+{% endblock %}

@@ -1,0 +1,33 @@
+{% extends 'store/base_store.html' %}
+{% load store_extras %}
+
+{% block title %}Pedido {{ order.number }} · {{ STORE_NAME }}{% endblock %}
+
+{% block content %}
+<div class="card center" style="margin-top:1.5rem">
+  <div style="font-size:3rem">✅</div>
+  <h2>Pedido criado!</h2>
+  <p class="muted">Número do pedido: <strong class="text-accent">{{ order.number }}</strong></p>
+  <p class="muted">Agora é só enviar a mensagem para concluir pelo WhatsApp da loja.</p>
+
+  <a href="{{ whatsapp_url }}" class="btn btn-wa btn-block" id="wa-btn" target="_blank" rel="noopener" style="margin:1rem 0">
+    Enviar pedido no WhatsApp 💬
+  </a>
+
+  <div class="summary-row summary-total"><span>Total</span><span>{{ order.total|brl }}</span></div>
+
+  <div style="margin-top:1rem;display:flex;gap:.5rem;justify-content:center">
+    <a href="{% url 'store:my_orders' %}" class="btn btn-sm">Meus pedidos</a>
+    <a href="{% url 'store:catalog' %}" class="btn btn-sm">Continuar comprando</a>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // Abre o WhatsApp automaticamente após criar o pedido
+  setTimeout(function () {
+    window.location.href = document.getElementById("wa-btn").href;
+  }, 1200);
+</script>
+{% endblock %}

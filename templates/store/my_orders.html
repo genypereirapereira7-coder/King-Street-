@@ -1,0 +1,29 @@
+{% extends 'store/base_store.html' %}
+{% load store_extras %}
+
+{% block title %}Meus pedidos · {{ STORE_NAME }}{% endblock %}
+
+{% block content %}
+<div class="section-title"><h2>Meus pedidos</h2></div>
+
+{% if not customer %}
+  <div class="empty">
+    <p>Nenhum pedido encontrado neste aparelho.</p>
+    <p class="dim">Ao finalizar uma compra, seus pedidos aparecem aqui automaticamente.</p>
+    <a href="{% url 'store:catalog' %}" class="btn btn-primary">Ver catálogo</a>
+  </div>
+{% else %}
+  <p class="dim">Olá, {{ customer.name }} 👋</p>
+  {% for order in orders %}
+    <a href="{% url 'store:order_track' order.number %}" class="card" style="display:block;margin-bottom:.6rem">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <strong class="text-accent">{{ order.number }}</strong>
+        <span class="st st-{{ order.status }}">{{ order.get_status_display }}</span>
+      </div>
+      <div class="dim" style="font-size:.85rem">{{ order.created_at|date:"d/m/Y H:i" }} · {{ order.total|brl }}</div>
+    </a>
+  {% empty %}
+    <div class="empty">Você ainda não fez pedidos.</div>
+  {% endfor %}
+{% endif %}
+{% endblock %}

@@ -1,0 +1,39 @@
+{% extends 'store/base_store.html' %}
+{% load store_extras %}
+
+{% block title %}Pedido {{ order.number }} · {{ STORE_NAME }}{% endblock %}
+
+{% block content %}
+<div class="section-title"><h2>Pedido {{ order.number }}</h2></div>
+
+<div class="card">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem">
+    <span class="muted">Status atual</span>
+    <span class="st st-{{ order.status }}">{{ order.get_status_display }}</span>
+  </div>
+  <div class="dim">{{ order.created_at|date:"d/m/Y H:i" }}</div>
+  <div class="muted" style="margin-top:.4rem">
+    {% if order.is_delivery %}Entrega: {{ order.delivery_address }}{% else %}Retirada na loja{% endif %}
+  </div>
+</div>
+
+<div class="card" style="margin-top:1rem">
+  <h3 style="font-size:1rem">Itens</h3>
+  {% for item in order.items.all %}
+    <div class="summary-row"><span class="muted">{{ item.quantity }}x {{ item.product_name }} <span class="dim">{{ item.variation_label }}</span></span><span>{{ item.total_price|brl }}</span></div>
+  {% endfor %}
+  <div class="summary-row"><span class="muted">Subtotal</span><span>{{ order.subtotal|brl }}</span></div>
+  {% if order.discount %}<div class="summary-row"><span class="muted">Desconto</span><span>- {{ order.discount|brl }}</span></div>{% endif %}
+  <div class="summary-row summary-total"><span>Total</span><span>{{ order.total|brl }}</span></div>
+</div>
+
+<div class="card" style="margin-top:1rem">
+  <h3 style="font-size:1rem">Acompanhamento</h3>
+  {% for h in order.history.all %}
+    <div class="summary-row">
+      <span class="muted">{{ h.get_new_status_display }}</span>
+      <span class="dim">{{ h.created_at|date:"d/m H:i" }}</span>
+    </div>
+  {% endfor %}
+</div>
+{% endblock %}
