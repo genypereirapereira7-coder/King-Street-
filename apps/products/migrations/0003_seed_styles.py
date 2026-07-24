@@ -11,18 +11,18 @@ from apps.products.style_catalog import iter_styles
 
 def seed_styles(apps, schema_editor):
     Category = apps.get_model("products", "Category")
-    existentes = set(Category.objects.values_list("name", flat=True))
+    nomes = set(Category.objects.values_list("name", flat=True))
+    slugs = set(Category.objects.values_list("slug", flat=True))
     novos = []
     for nome, grupo in iter_styles():
-        if nome in existentes:
+        slug = slugify(nome)[:140]
+        # Pula nomes já existentes e slugs já usados (o slug é único e nomes
+        # diferentes podem gerar o mesmo, ex.: maiúscula/acento).
+        if nome in nomes or slug in slugs:
             continue
-        novos.append(Category(
-            name=nome,
-            slug=slugify(nome)[:140],
-            description=grupo,
-            is_active=False,
-        ))
-        existentes.add(nome)
+        novos.append(Category(name=nome, slug=slug, description=grupo, is_active=False))
+        nomes.add(nome)
+        slugs.add(slug)
     Category.objects.bulk_create(novos, ignore_conflicts=True)
 
 

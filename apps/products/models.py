@@ -80,13 +80,18 @@ class Product(TimeStampedModel):
 
     # ---- Consultas de apoio (sem regra de negócio pesada) ----
     @property
+    def has_image(self):
+        return bool(self.main_image)
+
+    @property
     def is_available(self):
-        """Disponível no catálogo público: basta estar ativo.
+        """Disponível no catálogo público: ativo e com pelo menos uma foto.
 
         A loja não controla quantidade em estoque — quando um produto acaba,
-        o administrador simplesmente o desativa no painel.
+        o administrador simplesmente o desativa no painel. Produto sem foto
+        também não aparece para o cliente.
         """
-        return self.status == self.STATUS_ACTIVE
+        return self.status == self.STATUS_ACTIVE and self.has_image
 
     @property
     def main_image(self):

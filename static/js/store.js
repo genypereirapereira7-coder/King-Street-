@@ -75,6 +75,23 @@
       });
     });
 
+    // ---- Descrição: "Ler mais" só quando o texto é grande ----
+    var descText = document.getElementById("description-text");
+    var descToggle = document.getElementById("description-toggle");
+    if (descText && descToggle) {
+      // Começa recolhido (.clamped). Se couber inteiro, tira o recorte e
+      // esconde o botão; senão, o botão alterna entre ler mais / ler menos.
+      if (descText.scrollHeight - descText.clientHeight > 4) {
+        descToggle.hidden = false;
+        descToggle.addEventListener("click", function () {
+          var recolhido = descText.classList.toggle("clamped");
+          descToggle.textContent = recolhido ? "Ler mais" : "Ler menos";
+        });
+      } else {
+        descText.classList.remove("clamped");
+      }
+    }
+
     // ---- Entrega: mostra endereço só quando for "Entrega local" ----
     var deliveryInputs = document.querySelectorAll("input[name='delivery_method']");
     var addressBlock = document.getElementById("address-block");

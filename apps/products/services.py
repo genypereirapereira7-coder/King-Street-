@@ -15,13 +15,15 @@ class CatalogService:
 
     @staticmethod
     def available_products():
-        """Produtos ativos.
+        """Produtos ativos e com pelo menos uma foto.
 
         A loja não controla quantidade: quando um produto acaba, o
         administrador o desativa e ele sai do catálogo (Arquitetura 04).
+        Um produto sem foto nunca aparece para o cliente.
         """
         return (
-            Product.objects.filter(status=Product.STATUS_ACTIVE)
+            Product.objects.filter(status=Product.STATUS_ACTIVE, images__isnull=False)
+            .distinct()
             .select_related("category")
             .prefetch_related("images", "variations")
         )
@@ -81,6 +83,27 @@ class CatalogService:
         if product and product.is_available:
             return product
         return None
+
+
+class ProductService:
+    """Regras de publicação de produtos."""
+
+    @staticmethod
+    def has_image(product):
+        return product.images.exists()
+
+    @classmethod
+    def enforce_photo_before_active(cls, product):
+        """Um produto só pode ficar Ativo (visível na loja) com pelo menos
+        uma foto. Se estiver ativo sem foto, volta para inativo.
+
+        Retorna True se precisou reverter (para a view avisar o admin).
+        """
+        if product.status == Product.STATUS_ACTIVE and not cls.has_image(product):
+            product.status = Product.STATUS_INACTIVE
+            product.save(update_fields=["status", "updated_at"])
+            return True
+        return False
 
 
 class StockService:

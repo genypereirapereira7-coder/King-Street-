@@ -55,10 +55,12 @@
     {% endwith %}
   </nav>
 
-  {# Scripts de cada página ficam dentro do #app para serem reexecutados
-     quando o conteúdo é trocado sem recarregar a página. #}
+  {% comment %}
+    Os scripts de cada página ficam dentro do #app para serem reexecutados
+    quando o conteúdo é trocado sem recarregar a página.
+  {% endcomment %}
   {% block scripts %}{% endblock %}
-  </div>{# /#app #}
+  </div>{# fim do #app #}
 
   <div id="toasts" class="toasts"></div>
 

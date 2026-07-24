@@ -26,7 +26,6 @@
     <div class="product-cat">{{ product.category.name }}</div>
     <h1>{{ product.name }}</h1>
     <div class="detail-price">{{ product.price|brl }}</div>
-    <p class="muted">{{ product.description|linebreaksbr }}</p>
 
     <form method="post" action="{% url 'store:cart_add' %}" id="add-form">
       {% csrf_token %}
@@ -64,6 +63,14 @@
 
       <button type="submit" class="btn btn-primary btn-block" id="add-to-cart-btn" disabled>Adicionar ao carrinho</button>
     </form>
+
+    {% if product.description %}
+    <div class="description-block">
+      <h3>Descrição</h3>
+      <div class="description-text clamped" id="description-text">{{ product.description|linebreaksbr }}</div>
+      <button type="button" class="description-toggle" id="description-toggle" hidden>Ler mais</button>
+    </div>
+    {% endif %}
   </div>
 </div>
 

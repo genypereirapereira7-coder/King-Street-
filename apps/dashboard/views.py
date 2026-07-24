@@ -16,7 +16,7 @@ from apps.customers.models import Customer
 from apps.orders.models import Order, OrderStatus
 from apps.orders.services import OrderService, WhatsAppService
 from apps.products.models import Category, Product, ProductImage, ProductVariation
-from apps.products.services import ProductImageService
+from apps.products.services import ProductImageService, ProductService
 from apps.reviews.models import Review
 
 from .forms import CategoryForm, CouponForm, ProductForm, VariationForm
@@ -77,7 +77,14 @@ def product_create(request):
         form = ProductForm(request.POST)
         if form.is_valid():
             product = form.save()
-            messages.success(request, "Produto criado. Agora adicione variações e imagens.")
+            # Produto novo ainda não tem foto: não pode nascer publicado.
+            if ProductService.enforce_photo_before_active(product):
+                messages.warning(
+                    request,
+                    "Produto salvo como inativo. Adicione pelo menos uma foto e ative para publicar na loja.",
+                )
+            else:
+                messages.success(request, "Produto criado. Agora adicione variações e fotos.")
             return redirect("dashboard:product_edit", pk=product.pk)
     else:
         form = ProductForm()
@@ -93,8 +100,14 @@ def product_edit(request, pk):
     if request.method == "POST":
         form = ProductForm(request.POST, instance=product)
         if form.is_valid():
-            form.save()
-            messages.success(request, "Produto atualizado.")
+            product = form.save()
+            if ProductService.enforce_photo_before_active(product):
+                messages.warning(
+                    request,
+                    "Não é possível ativar sem foto. Adicione pelo menos uma foto para publicar.",
+                )
+            else:
+                messages.success(request, "Produto atualizado.")
             return redirect("dashboard:product_edit", pk=product.pk)
     else:
         form = ProductForm(instance=product)
@@ -121,6 +134,12 @@ def product_delete(request, pk):
 @require_POST
 def product_toggle_status(request, pk):
     product = get_object_or_404(Product, pk=pk)
+    ativando = product.status != Product.STATUS_ACTIVE
+    if ativando and not ProductService.has_image(product):
+        messages.warning(
+            request, f'"{product.name}" precisa de pelo menos uma foto para ser ativado.'
+        )
+        return redirect(request.POST.get("next") or "dashboard:product_list")
     product.status = (
         Product.STATUS_INACTIVE if product.status == Product.STATUS_ACTIVE else Product.STATUS_ACTIVE
     )

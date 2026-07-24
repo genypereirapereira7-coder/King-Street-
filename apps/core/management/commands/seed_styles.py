@@ -20,17 +20,20 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         created = 0
+        # Slugs já usados (nomes diferentes podem gerar o mesmo slug, que é único)
+        usados = set(Category.objects.values_list("slug", flat=True))
         for nome, grupo in iter_styles():
-            _, was_created = Category.objects.get_or_create(
-                name=nome,
-                defaults={
-                    "is_active": False,
-                    "description": grupo,
-                    "slug": slugify(nome)[:140],
-                },
+            if Category.objects.filter(name=nome).exists():
+                continue
+            slug = slugify(nome)[:140]
+            if slug in usados:
+                # Já existe uma categoria equivalente (ex.: só muda maiúscula/acento)
+                continue
+            Category.objects.create(
+                name=nome, slug=slug, description=grupo, is_active=False
             )
-            if was_created:
-                created += 1
+            usados.add(slug)
+            created += 1
         total = Category.objects.count()
         self.stdout.write(self.style.SUCCESS(
             f"{created} novo(s) estilo(s) cadastrado(s). Total de categorias: {total}."

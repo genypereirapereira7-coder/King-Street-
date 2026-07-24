@@ -28,7 +28,12 @@
       </div>
       {{ form.category.errors }}
     </div>
-    <div class="field"><label>Status</label>{{ form.status }}</div>
+    <div class="field">
+      <label>Status</label>{{ form.status }}
+      <p class="dim" style="font-size:.78rem;margin-top:.35rem">
+        Para ficar <strong>Ativo</strong> na loja, o produto precisa ter pelo menos uma foto.
+      </p>
+    </div>
     <button class="btn btn-primary btn-block">Salvar</button>
   </form>
 
