@@ -1,8 +1,9 @@
 """Camada de serviços do Carrinho (Arquitetura 02/04).
 
 O carrinho é mantido na sessão persistente do cliente. Cada item referencia
-uma variação de produto (cor + tamanho), pois o estoque é controlado por
-variação. Todas as regras (limite de estoque, totais, cupom) ficam aqui.
+uma variação de produto (cor + tamanho). A loja não controla quantidade em
+estoque: um item só sai do carrinho se o produto for desativado pelo
+administrador ou se a variação for removida. Totais e cupom ficam aqui.
 """
 from decimal import Decimal
 
@@ -48,40 +49,24 @@ class CartService:
 
     # ---- Operações ----
     def add(self, variation_id, quantity=1):
-        """Adiciona uma variação, respeitando o estoque disponível."""
+        """Adiciona uma variação ao carrinho."""
         variation = StockService.get_variation(variation_id)
         if variation is None:
             raise ValueError("Variação não encontrada.")
+        if not StockService.is_available(variation, 1):
+            raise ValueError("Produto indisponível no momento.")
 
         key = str(variation_id)
-        current = self.cart.get(key, 0)
-        desired = current + int(quantity)
-
-        if not StockService.has_stock(variation, desired):
-            available = variation.stock_quantity
-            if available <= 0:
-                raise ValueError("Produto esgotado.")
-            desired = available  # limita ao estoque disponível
-            self.cart[key] = desired
-            self._save()
-            raise ValueError(f"Quantidade limitada ao estoque disponível ({available}).")
-
-        self.cart[key] = desired
+        self.cart[key] = self.cart.get(key, 0) + max(1, int(quantity))
         self._save()
 
     def set_quantity(self, variation_id, quantity):
         variation = StockService.get_variation(variation_id)
-        key = str(variation_id)
         quantity = int(quantity)
         if variation is None or quantity <= 0:
             self.remove(variation_id)
             return
-        if not StockService.has_stock(variation, quantity):
-            quantity = variation.stock_quantity
-        if quantity <= 0:
-            self.remove(variation_id)
-            return
-        self.cart[key] = quantity
+        self.cart[str(variation_id)] = quantity
         self._save()
 
     def remove(self, variation_id):
@@ -107,16 +92,6 @@ class CartService:
                 del self.cart[key]
                 changed = True
                 continue
-            # Remove se a variação ESGOTOU antes da compra
-            if variation.stock_quantity <= 0:
-                del self.cart[key]
-                changed = True
-                continue
-            # Ajusta se o estoque diminuiu (mas ainda há unidades)
-            if quantity > variation.stock_quantity:
-                quantity = variation.stock_quantity
-                self.cart[key] = quantity
-                changed = True
             items.append(CartItem(variation, quantity))
         if changed:
             self._save()

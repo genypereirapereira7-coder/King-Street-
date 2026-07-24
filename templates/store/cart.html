@@ -22,8 +22,8 @@
         <form method="post" action="{% url 'store:cart_update' %}" style="display:flex;gap:.4rem;margin-top:.4rem;align-items:center">
           {% csrf_token %}
           <input type="hidden" name="variation_id" value="{{ item.variation_id }}">
-          <input type="number" name="quantity" value="{{ item.quantity }}" min="1" max="{{ item.variation.stock_quantity }}" style="width:70px" onchange="this.form.requestSubmit()">
-          <span class="dim" style="font-size:.8rem">de {{ item.variation.stock_quantity }}</span>
+          <input type="number" name="quantity" value="{{ item.quantity }}" min="1" max="99" style="width:70px" onchange="this.form.requestSubmit()">
+          <span class="dim" style="font-size:.8rem">un.</span>
         </form>
       </div>
       <form method="post" action="{% url 'store:cart_remove' %}">

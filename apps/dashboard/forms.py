@@ -36,7 +36,7 @@ class ProductForm(BaseStyledForm):
 class VariationForm(BaseStyledForm):
     class Meta:
         model = ProductVariation
-        fields = ["color", "size", "stock_quantity"]
+        fields = ["color", "size"]
 
 
 class CouponForm(BaseStyledForm):

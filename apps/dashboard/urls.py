@@ -16,7 +16,6 @@ urlpatterns = [
     path("produtos/<int:pk>/excluir/", views.product_delete, name="product_delete"),
     path("produtos/<int:pk>/status/", views.product_toggle_status, name="product_toggle_status"),
     path("produtos/<int:pk>/variacao/", views.variation_add, name="variation_add"),
-    path("variacao/<int:pk>/estoque/", views.variation_update_stock, name="variation_update_stock"),
     path("variacao/<int:pk>/excluir/", views.variation_delete, name="variation_delete"),
     path("produtos/<int:pk>/imagem/", views.image_add, name="image_add"),
     path("imagem/<int:pk>/excluir/", views.image_delete, name="image_delete"),

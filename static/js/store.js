@@ -29,19 +29,20 @@
         return variations.find(function (v) { return v.color === state.color && v.size === state.size; });
       };
       var refresh = function () {
+        // Tamanhos que existem para a cor escolhida (a loja não controla quantidade)
         document.querySelectorAll(".pill[data-size]").forEach(function (p) {
           var available = variations.some(function (v) {
-            return (!state.color || v.color === state.color) && v.size === p.dataset.size && v.stock > 0;
+            return (!state.color || v.color === state.color) && v.size === p.dataset.size;
           });
           p.classList.toggle("disabled", !available);
         });
         var v = findVariation();
-        if (state.color && state.size && v && v.stock > 0) {
+        if (state.color && state.size && v) {
           hidden.value = v.id; addBtn.disabled = false;
-          feedback.textContent = v.stock + " em estoque"; feedback.style.color = "var(--text-muted)";
+          feedback.textContent = "Disponível"; feedback.style.color = "var(--success)";
         } else {
           hidden.value = ""; addBtn.disabled = true;
-          if (state.color && state.size) { feedback.textContent = "Combinação esgotada"; feedback.style.color = "var(--danger)"; }
+          if (state.color && state.size) { feedback.textContent = "Combinação indisponível"; feedback.style.color = "var(--danger)"; }
           else { feedback.textContent = "Escolha cor e tamanho"; feedback.style.color = "var(--text-dim)"; }
         }
       };

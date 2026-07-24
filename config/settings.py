@@ -186,7 +186,10 @@ STORAGES = {
 # ---------------------------------------------------------------------------
 SESSION_ENGINE = "django.contrib.sessions.backends.db"
 SESSION_COOKIE_AGE = 60 * 60 * 24 * 180  # 180 dias
-SESSION_SAVE_EVERY_REQUEST = True
+# Gravar a sessão a cada requisição custava um INSERT/UPDATE no banco em toda
+# tela aberta — o que deixava o painel lento. A sessão é salva quando muda
+# (carrinho, login, avisos), que é o suficiente para manter o cliente logado.
+SESSION_SAVE_EVERY_REQUEST = False
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 SESSION_COOKIE_SAMESITE = "Lax"
 
@@ -205,7 +208,6 @@ STORE_NAME = os.getenv("STORE_NAME", "King Street")
 # WhatsApp oficial da loja: (69) 99949-2602 — formato DDI+DDD+número, só dígitos.
 # Para trocar, basta definir STORE_WHATSAPP no .env (ou nas variáveis da Railway).
 STORE_WHATSAPP = os.getenv("STORE_WHATSAPP", "5569999492602")
-LOW_STOCK_THRESHOLD = int(os.getenv("LOW_STOCK_THRESHOLD", "5"))
 
 # ---------------------------------------------------------------------------
 # Logging — registra erros no servidor (Arquitetura 06)

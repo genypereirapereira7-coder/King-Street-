@@ -9,8 +9,8 @@
   <link rel="manifest" href="{% url 'pwa-manifest' %}">
   <link rel="icon" href="{% static 'img/logo-cut.png' %}">
   <link rel="apple-touch-icon" href="{% static 'pwa/icon-192.png' %}">
-  <link rel="stylesheet" href="{% static 'css/theme.css' %}?v=9">
-  <link rel="stylesheet" href="{% static 'css/dashboard.css' %}?v=9">
+  <link rel="stylesheet" href="{% static 'css/theme.css' %}?v=10">
+  <link rel="stylesheet" href="{% static 'css/dashboard.css' %}?v=10">
 </head>
 <body class="admin-shell">
   <div id="nav-progress" class="nav-progress"></div>
@@ -21,6 +21,7 @@
     <a href="{% url 'dashboard:logout' %}" class="btn btn-sm">Sair</a>
   </div>
 
+  <div id="app">
   <div class="admin-layout">
     <nav class="admin-nav">
       {% with u=request.resolver_match.url_name %}
@@ -54,61 +55,13 @@
     {% endwith %}
   </nav>
 
-  <script>
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("/service-worker.js").catch(function(){});
-    }
-
-    // Painel sempre atualizado: cada clique busca a página nova no servidor
-    (function () {
-      var bar = document.getElementById("nav-progress");
-      var largura = 0, timer = null;
-
-      function iniciar() {
-        if (timer) return;
-        largura = 8;
-        bar.classList.add("on");
-        bar.style.width = largura + "%";
-        timer = setInterval(function () {
-          largura = Math.min(largura + (90 - largura) * 0.12, 90);
-          bar.style.width = largura + "%";
-        }, 120);
-      }
-
-      function parar() {
-        clearInterval(timer);
-        timer = null;
-        bar.style.width = "100%";
-        setTimeout(function () {
-          bar.classList.remove("on");
-          bar.style.width = "0";
-        }, 250);
-      }
-
-      // Links internos do painel: mostra o carregamento
-      document.addEventListener("click", function (e) {
-        var link = e.target.closest("a");
-        if (!link || e.defaultPrevented || e.metaKey || e.ctrlKey || e.shiftKey) return;
-        var href = link.getAttribute("href");
-        if (!href || href.charAt(0) === "#" || link.target === "_blank") return;
-        if (link.protocol !== location.protocol || link.host !== location.host) return;
-        iniciar();
-      });
-
-      // Formulários (ativar estilo, salvar produto, mudar status...)
-      document.addEventListener("submit", function (e) {
-        if (!e.defaultPrevented) iniciar();
-      });
-
-      window.addEventListener("pageshow", function (e) {
-        parar();
-        // Voltar/avançar: recarrega do servidor em vez de mostrar a página congelada
-        if (e.persisted) location.reload();
-      });
-
-      window.addEventListener("beforeunload", iniciar);
-    })();
-  </script>
+  {# Scripts de cada página ficam dentro do #app para serem reexecutados
+     quando o conteúdo é trocado sem recarregar a página. #}
   {% block scripts %}{% endblock %}
+  </div>{# /#app #}
+
+  <div id="toasts" class="toasts"></div>
+
+  <script src="{% static 'js/dashboard.js' %}?v=1"></script>
 </body>
 </html>

@@ -33,7 +33,7 @@
       <input type="hidden" name="variation_id" id="variation_id" value="">
       <input type="hidden" name="next" value="{% url 'store:cart' %}">
 
-      <div id="variation-picker" data-variations='[{% for v in variations %}{"id":{{ v.id }},"color":"{{ v.color|escapejs }}","size":"{{ v.size|escapejs }}","stock":{{ v.stock_quantity }}}{% if not forloop.last %},{% endif %}{% endfor %}]'>
+      <div id="variation-picker" data-variations='[{% for v in variations %}{"id":{{ v.id }},"color":"{{ v.color|escapejs }}","size":"{{ v.size|escapejs }}"}{% if not forloop.last %},{% endif %}{% endfor %}]'>
         <div class="option-group">
           <h4>Cor</h4>
           <div class="pills">

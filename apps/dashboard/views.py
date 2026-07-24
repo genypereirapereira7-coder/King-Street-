@@ -16,7 +16,7 @@ from apps.customers.models import Customer
 from apps.orders.models import Order, OrderStatus
 from apps.orders.services import OrderService, WhatsAppService
 from apps.products.models import Category, Product, ProductImage, ProductVariation
-from apps.products.services import ProductImageService, StockService
+from apps.products.services import ProductImageService
 from apps.reviews.models import Review
 
 from .forms import CategoryForm, CouponForm, ProductForm, VariationForm
@@ -63,7 +63,7 @@ def home(request):
 @staff_required
 def product_list(request):
     query = request.GET.get("q", "").strip()
-    products = Product.objects.select_related("category").prefetch_related("variations", "images")
+    products = Product.objects.select_related("category").prefetch_related("images")
     if query:
         products = products.filter(Q(name__icontains=query))
     page = Paginator(products, 20).get_page(request.GET.get("page"))
@@ -87,7 +87,9 @@ def product_create(request):
 @login_required
 @staff_required
 def product_edit(request, pk):
-    product = get_object_or_404(Product, pk=pk)
+    product = get_object_or_404(
+        Product.objects.prefetch_related("variations", "images"), pk=pk
+    )
     if request.method == "POST":
         form = ProductForm(request.POST, instance=product)
         if form.is_valid():
@@ -100,7 +102,7 @@ def product_edit(request, pk):
         "form": form,
         "product": product,
         "variation_form": VariationForm(),
-        "can_add_image": ProductImageService.can_add_image(product),
+        "remaining_images": ProductImageService.remaining_slots(product),
     })
 
 
@@ -150,16 +152,6 @@ def variation_add(request, pk):
 @login_required
 @staff_required
 @require_POST
-def variation_update_stock(request, pk):
-    variation = get_object_or_404(ProductVariation, pk=pk)
-    StockService.set_quantity(variation, request.POST.get("stock_quantity", 0))
-    messages.success(request, "Estoque atualizado.")
-    return redirect("dashboard:product_edit", pk=variation.product_id)
-
-
-@login_required
-@staff_required
-@require_POST
 def variation_delete(request, pk):
     variation = get_object_or_404(ProductVariation, pk=pk)
     product_id = variation.product_id
@@ -173,14 +165,20 @@ def variation_delete(request, pk):
 @staff_required
 @require_POST
 def image_add(request, pk):
+    """Recebe uma ou várias fotos de uma vez (até completar o limite de 3)."""
     product = get_object_or_404(Product, pk=pk)
-    image = request.FILES.get("image")
-    if not image:
-        messages.warning(request, "Selecione uma imagem.")
+    images = request.FILES.getlist("images") or request.FILES.getlist("image")
+    if not images:
+        messages.warning(request, "Selecione pelo menos uma foto.")
         return redirect("dashboard:product_edit", pk=pk)
     try:
-        ProductImageService.add_image(product, image)
-        messages.success(request, "Imagem adicionada.")
+        adicionadas, ignoradas = ProductImageService.add_images(product, images)
+        plural = "s" if adicionadas > 1 else ""
+        messages.success(request, f"{adicionadas} foto{plural} adicionada{plural}.")
+        if ignoradas:
+            messages.warning(
+                request, f"{ignoradas} foto(s) não couberam: o limite é de 3 por produto."
+            )
     except ValueError as exc:
         messages.warning(request, str(exc))
     return redirect("dashboard:product_edit", pk=pk)

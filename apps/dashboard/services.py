@@ -1,33 +1,34 @@
 """Serviços do painel — indicadores do dashboard (Arquitetura 05)."""
-from django.conf import settings
-from django.db.models import Count, F, Sum
+from django.db.models import Count, Q, Sum
 from django.utils import timezone
 
 from apps.customers.models import Customer
 from apps.orders.models import Order, OrderItem, OrderStatus
-from apps.products.models import Product, ProductVariation
+from apps.products.models import Product
 
 
 class DashboardService:
     @staticmethod
     def summary():
         today = timezone.localdate()
-        orders = Order.objects.all()
-        low_stock = (
-            ProductVariation.objects.filter(stock_quantity__lte=settings.LOW_STOCK_THRESHOLD)
-            .select_related("product")
-            .order_by("stock_quantity")
+
+        # Um único SELECT para todos os contadores de pedidos, em vez de
+        # quatro consultas separadas — o painel abre bem mais rápido.
+        totals = Order.objects.aggregate(
+            total=Count("id"),
+            today=Count("id", filter=Q(created_at__date=today)),
+            preparing=Count("id", filter=Q(status=OrderStatus.PREPARING)),
+            delivered=Count("id", filter=Q(status=OrderStatus.DELIVERED)),
         )
+
         return {
-            "total_orders": orders.count(),
-            "orders_today": orders.filter(created_at__date=today).count(),
-            "orders_preparing": orders.filter(status=OrderStatus.PREPARING).count(),
-            "orders_delivered": orders.filter(status=OrderStatus.DELIVERED).count(),
+            "total_orders": totals["total"],
+            "orders_today": totals["today"],
+            "orders_preparing": totals["preparing"],
+            "orders_delivered": totals["delivered"],
             "total_products": Product.objects.count(),
             "total_customers": Customer.objects.count(),
-            "low_stock": low_stock[:10],
-            "low_stock_count": low_stock.count(),
-            "recent_orders": orders.select_related("customer")[:8],
+            "recent_orders": Order.objects.select_related("customer")[:8],
             "best_sellers": (
                 OrderItem.objects.values("product_name")
                 .annotate(qty=Sum("quantity"))

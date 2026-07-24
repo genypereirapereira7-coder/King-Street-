@@ -80,21 +80,21 @@ class Product(TimeStampedModel):
 
     # ---- Consultas de apoio (sem regra de negócio pesada) ----
     @property
-    def total_stock(self):
-        return sum(v.stock_quantity for v in self.variations.all())
-
-    @property
-    def is_sold_out(self):
-        return self.total_stock <= 0
-
-    @property
     def is_available(self):
-        """Disponível no catálogo público: ativo e com estoque (Arquitetura 04)."""
-        return self.status == self.STATUS_ACTIVE and not self.is_sold_out
+        """Disponível no catálogo público: basta estar ativo.
+
+        A loja não controla quantidade em estoque — quando um produto acaba,
+        o administrador simplesmente o desativa no painel.
+        """
+        return self.status == self.STATUS_ACTIVE
 
     @property
     def main_image(self):
-        return self.images.order_by("order", "id").first()
+        # Usa o prefetch quando disponível (ProductImage já vem ordenado pelo
+        # Meta.ordering). Um .order_by() aqui dispararia uma consulta por
+        # produto na listagem — o painel e o catálogo ficariam lentos.
+        imagens = list(self.images.all())
+        return imagens[0] if imagens else None
 
     @property
     def colors(self):
@@ -134,6 +134,8 @@ class ProductVariation(TimeStampedModel):
     )
     color = models.CharField("cor", max_length=40)
     size = models.CharField("tamanho", max_length=40)
+    # Campo legado: a loja não controla mais quantidade em estoque.
+    # Mantido apenas para preservar os dados já gravados.
     stock_quantity = models.PositiveIntegerField("estoque", default=0)
 
     class Meta:
@@ -149,10 +151,6 @@ class ProductVariation(TimeStampedModel):
 
     def __str__(self):
         return f"{self.product.name} — {self.color}/{self.size}"
-
-    @property
-    def is_sold_out(self):
-        return self.stock_quantity <= 0
 
     @property
     def label(self):

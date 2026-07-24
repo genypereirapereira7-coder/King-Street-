@@ -30,22 +30,7 @@
   </div>
 
   <div class="card">
-    <h3 style="font-size:1rem">Baixo estoque ({{ data.low_stock_count }})</h3>
-    <div class="list">
-      {% for v in data.low_stock %}
-        <a href="{% url 'dashboard:product_edit' v.product_id %}" class="list-row">
-          <div class="grow">
-            <div class="title">{{ v.product.name }}</div>
-            <div class="sub">{{ v.color }} · {{ v.size }}</div>
-          </div>
-          <span class="badge {% if v.stock_quantity == 0 %}off{% else %}accent{% endif %}">{{ v.stock_quantity }} un.</span>
-        </a>
-      {% empty %}
-        <p class="dim">Estoque em dia 👍</p>
-      {% endfor %}
-    </div>
-
-    <h3 style="font-size:1rem;margin-top:1.25rem">Mais vendidos</h3>
+    <h3 style="font-size:1rem">Mais vendidos</h3>
     <div class="list">
       {% for b in data.best_sellers %}
         <div class="list-row"><div class="grow"><div class="title">{{ b.product_name }}</div></div><span class="badge accent">{{ b.qty }} un.</span></div>

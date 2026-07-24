@@ -3,7 +3,7 @@
 Toda regra de negócio relacionada a catálogo, estoque e disponibilidade
 vive aqui — nunca nas views ou templates.
 """
-from django.db.models import Q, Sum
+from django.db.models import Q
 
 from .models import Category, Product, ProductImage, ProductVariation
 
@@ -15,30 +15,22 @@ class CatalogService:
 
     @staticmethod
     def available_products():
-        """Produtos ativos e com pelo menos uma variação em estoque.
+        """Produtos ativos.
 
-        Produtos inativos ou totalmente esgotados são automaticamente
-        removidos do catálogo público (Arquitetura 04).
+        A loja não controla quantidade: quando um produto acaba, o
+        administrador o desativa e ele sai do catálogo (Arquitetura 04).
         """
         return (
             Product.objects.filter(status=Product.STATUS_ACTIVE)
-            .annotate(_stock=Sum("variations__stock_quantity"))
-            .filter(_stock__gt=0)
             .select_related("category")
             .prefetch_related("images", "variations")
         )
 
     @staticmethod
     def active_categories():
-        """Categorias ativadas pelo admin que possuem produtos disponíveis.
-
-        Só aparecem na loja categorias ativas (Arquitetura 05) com pelo menos
-        um produto ativo e em estoque.
-        """
+        """Categorias ativadas pelo admin que possuem produtos ativos."""
         return (
             Category.objects.filter(is_active=True, products__status=Product.STATUS_ACTIVE)
-            .annotate(stock=Sum("products__variations__stock_quantity"))
-            .filter(stock__gt=0)
             .distinct()
             .order_by("name")
         )
@@ -92,37 +84,36 @@ class CatalogService:
 
 
 class StockService:
-    """Regras de estoque, controladas por variação (Arquitetura 04)."""
+    """Disponibilidade por variação (Arquitetura 04).
+
+    A loja não trabalha com contagem de estoque: a disponibilidade depende
+    apenas do produto estar ativo. Quando uma peça acaba, o administrador
+    desativa o produto (ou remove a variação) no painel.
+    """
 
     @staticmethod
     def get_variation(variation_id):
         return ProductVariation.objects.select_related("product").filter(id=variation_id).first()
 
     @staticmethod
-    def has_stock(variation, quantity):
-        return variation is not None and quantity > 0 and variation.stock_quantity >= quantity
-
-    @staticmethod
-    def decrease(variation, quantity):
-        """Baixa de estoque sem permitir valor negativo."""
-        if quantity <= 0:
-            return
-        new_value = max(0, variation.stock_quantity - quantity)
-        variation.stock_quantity = new_value
-        variation.save(update_fields=["stock_quantity", "updated_at"])
-
-    @staticmethod
-    def set_quantity(variation, quantity):
-        variation.stock_quantity = max(0, int(quantity))
-        variation.save(update_fields=["stock_quantity", "updated_at"])
+    def is_available(variation, quantity=1):
+        """A variação pode ser comprada nesta quantidade?"""
+        if variation is None or quantity <= 0:
+            return False
+        return variation.product.status == Product.STATUS_ACTIVE
 
 
 class ProductImageService:
     """Gerencia o upload de imagens respeitando o limite de 3 por produto."""
 
     @staticmethod
-    def can_add_image(product):
-        return product.images.count() < MAX_IMAGES_PER_PRODUCT
+    def remaining_slots(product):
+        """Quantas fotos ainda cabem neste produto."""
+        return max(0, MAX_IMAGES_PER_PRODUCT - product.images.count())
+
+    @classmethod
+    def can_add_image(cls, product):
+        return cls.remaining_slots(product) > 0
 
     @classmethod
     def add_image(cls, product, image_file):
@@ -130,3 +121,19 @@ class ProductImageService:
             raise ValueError(f"Cada produto pode ter no máximo {MAX_IMAGES_PER_PRODUCT} imagens.")
         order = product.images.count()
         return ProductImage.objects.create(product=product, image=image_file, order=order)
+
+    @classmethod
+    def add_images(cls, product, image_files):
+        """Envia várias fotos de uma vez, até completar o limite do produto.
+
+        Retorna (quantidade_adicionada, quantidade_ignorada) para que a view
+        avise o administrador quando o limite for atingido no meio do envio.
+        """
+        livres = cls.remaining_slots(product)
+        if livres <= 0:
+            raise ValueError(f"Cada produto pode ter no máximo {MAX_IMAGES_PER_PRODUCT} fotos.")
+        adicionadas = 0
+        for image_file in image_files[:livres]:
+            cls.add_image(product, image_file)
+            adicionadas += 1
+        return adicionadas, max(0, len(image_files) - livres)

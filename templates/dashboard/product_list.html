@@ -22,7 +22,7 @@
       </div>
       <a href="{% url 'dashboard:product_edit' product.pk %}" class="grow">
         <div class="title">{{ product.name }}</div>
-        <div class="sub">{{ product.category.name }} · {{ product.price|brl }} · estoque {{ product.total_stock }}</div>
+        <div class="sub">{{ product.category.name }} · {{ product.price|brl }}</div>
       </a>
       {% if product.status == 'active' %}
         <span class="badge on">Ativo</span>

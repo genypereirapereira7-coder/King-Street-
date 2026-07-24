@@ -49,13 +49,12 @@ class OrderService:
         if delivery_method not in dict(DeliveryMethod.choices):
             raise ValueError("Forma de entrega inválida.")
 
-        # Revalida o estoque de cada item no servidor
+        # Revalida no servidor se cada item continua disponível
         for item in items:
             variation = StockService.get_variation(item.variation_id)
-            if not StockService.has_stock(variation, item.quantity):
+            if not StockService.is_available(variation, item.quantity):
                 raise ValueError(
-                    f"Estoque insuficiente para {item.product.name} "
-                    f"({item.variation.label})."
+                    f"{item.product.name} ({item.variation.label}) não está mais disponível."
                 )
 
         customer = CustomerService.get_or_create_customer(customer_data)
@@ -93,8 +92,6 @@ class OrderService:
                 quantity=item.quantity,
                 unit_price=item.unit_price,
             )
-            # Baixa de estoque por variação
-            StockService.decrease(variation, item.quantity)
 
         OrderStatusHistory.objects.create(
             order=order, previous_status="", new_status=OrderStatus.RECEIVED,
@@ -142,9 +139,9 @@ class WhatsAppService:
     @classmethod
     def build_message(cls, order):
         c = order.customer
+        # Sem o número do pedido: o cliente manda só as informações da compra.
         lines = [
             f"*{settings.STORE_NAME} — Novo Pedido*",
-            f"Pedido: *{order.number}*",
             "",
             "*Cliente*",
             f"Nome: {c.name}",

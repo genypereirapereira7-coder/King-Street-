@@ -47,9 +47,9 @@ class Command(BaseCommand):
                     },
                 )
                 if created:
-                    for color, size, qty in variations:
+                    for color, size, _qty in variations:
                         ProductVariation.objects.create(
-                            product=product, color=color, size=size, stock_quantity=qty
+                            product=product, color=color, size=size
                         )
                     self.stdout.write(f"Produto criado: {name}")
 

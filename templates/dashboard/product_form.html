@@ -35,21 +35,14 @@
   {% if not creating %}
   <div>
     <div class="card">
-      <h3 style="font-size:1rem">Variações (cor + tamanho + estoque)</h3>
+      <h3 style="font-size:1rem">Variações (cor + tamanho)</h3>
       <table class="table">
-        <thead><tr><th>Cor</th><th>Tamanho</th><th>Estoque</th><th></th></tr></thead>
+        <thead><tr><th>Cor</th><th>Tamanho</th><th></th></tr></thead>
         <tbody>
           {% for v in product.variations.all %}
           <tr>
             <td>{{ v.color }}</td>
             <td>{{ v.size }}</td>
-            <td>
-              <form method="post" action="{% url 'dashboard:variation_update_stock' v.pk %}" style="display:flex;gap:.3rem">
-                {% csrf_token %}
-                <input type="number" name="stock_quantity" value="{{ v.stock_quantity }}" min="0" style="width:80px">
-                <button class="btn btn-sm">OK</button>
-              </form>
-            </td>
             <td>
               <form method="post" action="{% url 'dashboard:variation_delete' v.pk %}">{% csrf_token %}
                 <button class="btn btn-sm btn-danger">✕</button>
@@ -57,7 +50,7 @@
             </td>
           </tr>
           {% empty %}
-          <tr><td colspan="4" class="dim">Nenhuma variação. Adicione abaixo.</td></tr>
+          <tr><td colspan="3" class="dim">Nenhuma variação. Adicione abaixo.</td></tr>
           {% endfor %}
         </tbody>
       </table>
@@ -66,9 +59,11 @@
         {% csrf_token %}
         <input type="text" name="color" placeholder="Cor" required style="flex:1">
         <input type="text" name="size" placeholder="Tamanho" required style="flex:1">
-        <input type="number" name="stock_quantity" placeholder="Qtd" value="0" min="0" style="width:80px">
         <button class="btn btn-primary btn-sm">+ Adicionar</button>
       </form>
+      <p class="dim" style="margin-top:.5rem;font-size:.78rem">
+        Quando uma peça acabar, é só desativar o produto no campo Status.
+      </p>
     </div>
 
     <div class="card" style="margin-top:1rem">
@@ -85,14 +80,22 @@
           <p class="dim">Nenhuma imagem.</p>
         {% endfor %}
       </div>
-      {% if can_add_image %}
-      <form method="post" action="{% url 'dashboard:image_add' product.pk %}" enctype="multipart/form-data" style="display:flex;gap:.5rem;margin-top:.75rem">
+      {% if remaining_images %}
+      <form method="post" action="{% url 'dashboard:image_add' product.pk %}" enctype="multipart/form-data"
+            id="foto-form" style="margin-top:.75rem">
         {% csrf_token %}
-        <input type="file" name="image" accept="image/*" required>
-        <button class="btn btn-primary btn-sm">Enviar</button>
+        <input type="file" name="images" id="foto-input" accept="image/*" multiple hidden
+               data-max="{{ remaining_images }}">
+        <label for="foto-input" class="btn btn-primary btn-block upload-btn">
+          <span class="ico">📷</span> Adicionar Foto
+        </label>
+        <p class="dim" style="margin-top:.4rem;font-size:.78rem" id="foto-hint">
+          Toque para escolher da galeria — dá para selecionar até {{ remaining_images }} foto(s) de uma vez.
+        </p>
+        <div class="upload-preview" id="foto-preview"></div>
       </form>
       {% else %}
-        <p class="dim" style="margin-top:.5rem">Limite de 3 imagens atingido.</p>
+        <p class="dim" style="margin-top:.5rem">Limite de 3 fotos atingido. Remova uma para enviar outra.</p>
       {% endif %}
     </div>
 
@@ -108,6 +111,38 @@
 
 {% block scripts %}
 <script>
+  // ---- Envio de fotos: pré-visualiza e envia direto ----
+  (function () {
+    var input = document.getElementById("foto-input");
+    if (!input) return;
+    var preview = document.getElementById("foto-preview");
+    var hint = document.getElementById("foto-hint");
+    var max = parseInt(input.dataset.max || "3", 10);
+
+    input.addEventListener("change", function () {
+      var files = Array.prototype.slice.call(input.files);
+      preview.innerHTML = "";
+      if (!files.length) return;
+
+      if (files.length > max) {
+        hint.textContent = "Só cabem mais " + max + " foto(s) neste produto. Selecione menos.";
+        hint.style.color = "var(--warning)";
+        input.value = "";
+        return;
+      }
+
+      files.forEach(function (file) {
+        var img = document.createElement("img");
+        img.src = URL.createObjectURL(file);
+        img.onload = function () { URL.revokeObjectURL(img.src); };
+        preview.appendChild(img);
+      });
+      hint.textContent = "Enviando " + files.length + " foto(s)...";
+      hint.style.color = "var(--text-muted)";
+      document.getElementById("foto-form").requestSubmit();
+    });
+  })();
+
   (function () {
     var combo = document.getElementById("cat-combo");
     if (!combo) return;
