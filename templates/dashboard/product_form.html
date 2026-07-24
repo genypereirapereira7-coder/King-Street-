@@ -116,7 +116,7 @@
 
 {% block scripts %}
 <script>
-  // ---- Envio de fotos: pré-visualiza e envia direto ----
+  // ---- Envio de fotos: ajusta (recorta) cada uma e envia ----
   (function () {
     var input = document.getElementById("foto-input");
     if (!input) return;
@@ -136,15 +136,31 @@
         return;
       }
 
-      files.forEach(function (file) {
-        var img = document.createElement("img");
-        img.src = URL.createObjectURL(file);
-        img.onload = function () { URL.revokeObjectURL(img.src); };
-        preview.appendChild(img);
-      });
-      hint.textContent = "Enviando " + files.length + " foto(s)...";
-      hint.style.color = "var(--text-muted)";
-      document.getElementById("foto-form").requestSubmit();
+      function enviar(arquivos) {
+        // Coloca as fotos já ajustadas de volta no input e envia
+        var dt = new DataTransfer();
+        arquivos.forEach(function (f) { dt.items.add(f); });
+        input.files = dt.files;
+        arquivos.forEach(function (f) {
+          var img = document.createElement("img");
+          img.src = URL.createObjectURL(f);
+          img.onload = function () { URL.revokeObjectURL(img.src); };
+          preview.appendChild(img);
+        });
+        hint.textContent = "Enviando " + arquivos.length + " foto(s)...";
+        hint.style.color = "var(--text-muted)";
+        document.getElementById("foto-form").requestSubmit();
+      }
+
+      if (window.KSCropper) {
+        window.KSCropper.open(files, {
+          onDone: function (recortadas) { enviar(recortadas); },
+          onCancel: function () { input.value = ""; hint.textContent = "Ajuste cancelado."; },
+        });
+      } else {
+        // Fallback: envia sem ajuste se o recortador não carregou
+        enviar(files);
+      }
     });
   })();
 

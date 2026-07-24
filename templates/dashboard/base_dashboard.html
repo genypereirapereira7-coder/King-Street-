@@ -9,8 +9,8 @@
   <link rel="manifest" href="{% url 'pwa-manifest' %}">
   <link rel="icon" href="{% static 'img/logo-cut.png' %}">
   <link rel="apple-touch-icon" href="{% static 'pwa/icon-192.png' %}">
-  <link rel="stylesheet" href="{% static 'css/theme.css' %}?v=10">
-  <link rel="stylesheet" href="{% static 'css/dashboard.css' %}?v=10">
+  <link rel="stylesheet" href="{% static 'css/theme.css' %}?v=11">
+  <link rel="stylesheet" href="{% static 'css/dashboard.css' %}?v=11">
 </head>
 <body class="admin-shell">
   <div id="nav-progress" class="nav-progress"></div>
@@ -64,6 +64,7 @@
 
   <div id="toasts" class="toasts"></div>
 
-  <script src="{% static 'js/dashboard.js' %}?v=1"></script>
+  <script src="{% static 'js/cropper.js' %}?v=2"></script>
+  <script src="{% static 'js/dashboard.js' %}?v=2"></script>
 </body>
 </html>

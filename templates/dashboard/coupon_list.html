@@ -31,11 +31,13 @@
             {% if c.max_uses %}· {{ c.used_count }}/{{ c.max_uses }} usos{% endif %}
           </div>
         </div>
-        {% if c.is_active %}<span class="badge on">Ativo</span>{% else %}<span class="badge off">Inativo</span>{% endif %}
-        <a href="{% url 'dashboard:coupon_edit' c.pk %}" class="btn btn-sm">Editar</a>
-        <form method="post" action="{% url 'dashboard:coupon_toggle' c.pk %}">{% csrf_token %}
-          <button class="btn btn-sm">{% if c.is_active %}Desativar{% else %}Ativar{% endif %}</button>
-        </form>
+        <div class="row-actions">
+          {% if c.is_active %}<span class="badge on">Ativo</span>{% else %}<span class="badge off">Inativo</span>{% endif %}
+          <a href="{% url 'dashboard:coupon_edit' c.pk %}" class="btn btn-sm">Editar</a>
+          <form method="post" action="{% url 'dashboard:coupon_toggle' c.pk %}">{% csrf_token %}
+            <button class="btn btn-sm btn-toggle">{% if c.is_active %}Desativar{% else %}Ativar{% endif %}</button>
+          </form>
+        </div>
       </div>
     {% empty %}
       <div class="empty">Nenhum cupom.</div>

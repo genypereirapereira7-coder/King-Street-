@@ -146,8 +146,31 @@
 @media (min-width: 800px) { .product-detail { grid-template-columns: 1fr 1fr; } }
 .gallery-main { aspect-ratio: 1/1; border-radius: var(--radius); overflow: hidden; background: var(--bg-elev); }
 .gallery-main img { width: 100%; height: 100%; object-fit: cover; }
-.gallery-thumbs { display: flex; gap: .5rem; margin-top: .5rem; }
-.gallery-thumbs img { width: 64px; height: 64px; border-radius: 8px; object-fit: cover; border: 1px solid var(--border); cursor: pointer; }
+
+/* Galeria deslizável (swipe) do produto */
+.gallery { position: relative; border-radius: var(--radius); overflow: hidden; background: var(--bg-elev); touch-action: pan-y; }
+.gallery-track { display: flex; will-change: transform; }
+.gallery-track.animate { transition: transform .3s ease; }
+.gallery-slide { flex: 0 0 100%; aspect-ratio: 1/1; }
+.gallery-slide img { width: 100%; height: 100%; object-fit: cover; user-select: none; -webkit-user-drag: none; pointer-events: none; }
+.gallery-nav {
+  position: absolute; top: 50%; transform: translateY(-50%);
+  width: 38px; height: 38px; border-radius: 999px; z-index: 2;
+  display: grid; place-items: center; cursor: pointer;
+  background: rgba(0,0,0,.55); color: #fff; border: 1px solid rgba(255,255,255,.25);
+  font-size: 1.5rem; line-height: 1; padding-bottom: 3px;
+}
+.gallery-nav.prev { left: 8px; }
+.gallery-nav.next { right: 8px; }
+.gallery-nav:hover { background: rgba(0,0,0,.8); }
+@media (hover: none) { .gallery-nav { display: none; } } /* No celular usa o dedo */
+.gallery-dots { position: absolute; bottom: 10px; left: 0; right: 0; z-index: 2; display: flex; justify-content: center; gap: .4rem; }
+.gallery-dots .dot { width: 7px; height: 7px; border-radius: 999px; background: rgba(255,255,255,.45); transition: background .2s, width .2s; }
+.gallery-dots .dot.active { background: #fff; width: 18px; }
+
+.gallery-thumbs { display: flex; gap: .5rem; margin-top: .5rem; overflow-x: auto; }
+.gallery-thumbs img { width: 64px; height: 64px; border-radius: 8px; object-fit: cover; border: 1px solid var(--border); cursor: pointer; flex: 0 0 auto; opacity: .6; transition: opacity .2s, border-color .2s; }
+.gallery-thumbs img.active { opacity: 1; border-color: var(--accent); }
 .detail-price { font-size: 1.6rem; color: var(--gold); font-weight: 800; margin: .5rem 0; }
 
 /* Descrição do produto — abaixo do botão de adicionar ao carrinho */

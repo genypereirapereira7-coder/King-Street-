@@ -5,16 +5,85 @@
   "use strict";
 
   // ======================================================================
+  // Galeria deslizável do produto
+  // ======================================================================
+  function initGallery() {
+    var gallery = document.getElementById("gallery");
+    if (!gallery) return;
+    var track = document.getElementById("gallery-track");
+    var total = parseInt(gallery.dataset.count || "1", 10);
+    var index = 0;
+    var startX = 0, startY = 0, deltaX = 0, dragging = false, locked = false, width = 0;
+
+    var dots = Array.prototype.slice.call(document.querySelectorAll("#gallery-dots .dot"));
+    var thumbs = Array.prototype.slice.call(document.querySelectorAll("#gallery-thumbs img"));
+
+    function goTo(i) {
+      index = Math.max(0, Math.min(total - 1, i));
+      track.classList.add("animate");
+      track.style.transform = "translateX(" + (-index * 100) + "%)";
+      dots.forEach(function (d, k) { d.classList.toggle("active", k === index); });
+      thumbs.forEach(function (t, k) { t.classList.toggle("active", k === index); });
+    }
+
+    // Setas (desktop)
+    var prev = document.getElementById("gallery-prev");
+    var next = document.getElementById("gallery-next");
+    if (prev) prev.addEventListener("click", function () { goTo(index - 1); });
+    if (next) next.addEventListener("click", function () { goTo(index + 1); });
+
+    // Pontinhos e miniaturas
+    dots.forEach(function (d) { d.addEventListener("click", function () { goTo(parseInt(d.dataset.index, 10)); }); });
+    thumbs.forEach(function (t) { t.addEventListener("click", function () { goTo(parseInt(t.dataset.index, 10)); }); });
+
+    if (total <= 1) return;
+
+    // Arraste com o dedo / mouse
+    function onStart(x, y) {
+      dragging = true; locked = false;
+      startX = x; startY = y; deltaX = 0;
+      width = gallery.offsetWidth;
+      track.classList.remove("animate");
+    }
+    function onMove(x, y, e) {
+      if (!dragging) return;
+      var dx = x - startX, dy = y - startY;
+      if (!locked) {
+        // Decide se o gesto é horizontal (deslizar foto) ou vertical (rolar página)
+        if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+        if (Math.abs(dy) > Math.abs(dx)) { dragging = false; return; }
+        locked = true;
+      }
+      deltaX = dx;
+      if (e && e.cancelable) e.preventDefault();
+      var pct = (-index * 100) + (dx / width) * 100;
+      track.style.transform = "translateX(" + pct + "%)";
+    }
+    function onEnd() {
+      if (!dragging) return;
+      dragging = false;
+      if (Math.abs(deltaX) > width * 0.2) {
+        goTo(index + (deltaX < 0 ? 1 : -1));
+      } else {
+        goTo(index);
+      }
+    }
+
+    gallery.addEventListener("touchstart", function (e) { onStart(e.touches[0].clientX, e.touches[0].clientY); }, { passive: true });
+    gallery.addEventListener("touchmove", function (e) { onMove(e.touches[0].clientX, e.touches[0].clientY, e); }, { passive: false });
+    gallery.addEventListener("touchend", onEnd);
+
+    gallery.addEventListener("mousedown", function (e) { onStart(e.clientX, e.clientY); e.preventDefault(); });
+    window.addEventListener("mousemove", function (e) { if (dragging) onMove(e.clientX, e.clientY, e); });
+    window.addEventListener("mouseup", onEnd);
+  }
+
+  // ======================================================================
   // Inicialização da página (re-executada a cada navegação)
   // ======================================================================
   function initPage() {
-    // ---- Galeria do produto ----
-    document.querySelectorAll(".gallery-thumbs img").forEach(function (thumb) {
-      thumb.addEventListener("click", function () {
-        var main = document.querySelector(".gallery-main img");
-        if (main) main.src = thumb.dataset.full || thumb.src;
-      });
-    });
+    // ---- Galeria do produto (deslizável com o dedo / arraste) ----
+    initGallery();
 
     // ---- Seleção de variação (cor + tamanho) ----
     var box = document.getElementById("variation-picker");

@@ -56,6 +56,17 @@
 .list-row .grow { flex: 1; min-width: 0; }
 .list-row .title { font-weight: 600; font-size: .95rem; }
 .list-row .sub { font-size: .8rem; color: var(--text-dim); }
+
+/* Controles à direita da linha, alinhados em colunas iguais entre as linhas */
+.list-row .row-actions { display: flex; align-items: center; gap: .5rem; flex-shrink: 0; }
+.list-row .row-actions .badge { min-width: 62px; text-align: center; }
+.list-row .row-actions .btn-toggle { min-width: 84px; }
+.list-row .row-actions form { margin: 0; }
+@media (max-width: 560px) {
+  /* No celular a linha inteira quebra e os controles ocupam a largura toda */
+  .list-row .grow { flex-basis: 100%; }
+  .list-row .row-actions { width: 100%; justify-content: flex-end; }
+}
 .thumb-sm { width: 46px; height: 46px; border-radius: 8px; object-fit: cover; background: var(--bg-elev); display: grid; place-items: center; color: var(--text-dim); }
 
 .table { width: 100%; border-collapse: collapse; font-size: .9rem; }
@@ -153,3 +164,33 @@
   width: 66px; height: 66px; object-fit: cover;
   border-radius: 10px; border: 1px solid var(--border-strong);
 }
+
+/* Tela de ajuste da foto (recorte quadrado) */
+.cropper-overlay {
+  position: fixed; inset: 0; z-index: 400; display: grid; place-items: center;
+  background: rgba(0,0,0,.8); padding: 1rem;
+}
+.cropper-box {
+  width: min(94vw, 420px); background: var(--bg-card);
+  border: 1px solid var(--border-strong); border-radius: var(--radius);
+  padding: 1rem; box-shadow: var(--shadow);
+}
+.cropper-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: .75rem; }
+.cropper-count { font-size: .8rem; color: var(--text-dim); }
+.cropper-frame {
+  position: relative; width: 100%; aspect-ratio: 1/1; overflow: hidden;
+  border-radius: var(--radius-sm); background: #000; touch-action: none; cursor: grab;
+}
+.cropper-frame:active { cursor: grabbing; }
+.cropper-frame img { position: absolute; max-width: none; user-select: none; -webkit-user-drag: none; }
+.cropper-grid {
+  position: absolute; inset: 0; pointer-events: none;
+  background-image: linear-gradient(rgba(255,255,255,.25) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(255,255,255,.25) 1px, transparent 1px);
+  background-size: 33.33% 33.33%;
+}
+.cropper-zoom { display: flex; align-items: center; gap: .6rem; margin-top: .85rem; }
+.cropper-zoom input[type="range"] { flex: 1; accent-color: var(--accent); }
+.cropper-hint { font-size: .78rem; color: var(--text-dim); margin: .5rem 0 0; text-align: center; }
+.cropper-actions { display: flex; gap: .5rem; margin-top: .85rem; }
+.cropper-actions .btn { flex: 1; }

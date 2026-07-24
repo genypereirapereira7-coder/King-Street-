@@ -6,19 +6,30 @@
 {% block content %}
 <div class="product-detail">
   <div>
-    <div class="gallery-main">
-      {% if product.main_image %}
-        <img src="{{ product.main_image.image.url }}" alt="{{ product.name }}">
-      {% else %}
-        <div class="product-thumb"><span class="placeholder">👑</span></div>
+    {% if product.images.all %}
+    <div class="gallery" id="gallery" data-count="{{ product.images.count }}">
+      <div class="gallery-track" id="gallery-track">
+        {% for img in product.images.all %}
+          <div class="gallery-slide"><img src="{{ img.image.url }}" alt="{{ product.name }}" draggable="false"{% if not forloop.first %} loading="lazy"{% endif %}></div>
+        {% endfor %}
+      </div>
+      {% if product.images.count > 1 %}
+      <button type="button" class="gallery-nav prev" id="gallery-prev" aria-label="Foto anterior">‹</button>
+      <button type="button" class="gallery-nav next" id="gallery-next" aria-label="Próxima foto">›</button>
+      <div class="gallery-dots" id="gallery-dots">
+        {% for img in product.images.all %}<span class="dot{% if forloop.first %} active{% endif %}" data-index="{{ forloop.counter0 }}"></span>{% endfor %}
+      </div>
       {% endif %}
     </div>
     {% if product.images.count > 1 %}
-    <div class="gallery-thumbs">
+    <div class="gallery-thumbs" id="gallery-thumbs">
       {% for img in product.images.all %}
-        <img src="{{ img.image.url }}" data-full="{{ img.image.url }}" alt="">
+        <img src="{{ img.image.url }}" class="{% if forloop.first %}active{% endif %}" data-index="{{ forloop.counter0 }}" alt="" draggable="false">
       {% endfor %}
     </div>
+    {% endif %}
+    {% else %}
+    <div class="gallery-main"><div class="product-thumb"><span class="placeholder">👑</span></div></div>
     {% endif %}
   </div>
 
