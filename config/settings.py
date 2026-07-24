@@ -202,7 +202,9 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # Configurações da loja
 # ---------------------------------------------------------------------------
 STORE_NAME = os.getenv("STORE_NAME", "King Street")
-STORE_WHATSAPP = os.getenv("STORE_WHATSAPP", "5511999999999")
+# WhatsApp oficial da loja: (69) 99949-2602 — formato DDI+DDD+número, só dígitos.
+# Para trocar, basta definir STORE_WHATSAPP no .env (ou nas variáveis da Railway).
+STORE_WHATSAPP = os.getenv("STORE_WHATSAPP", "5569999492602")
 LOW_STOCK_THRESHOLD = int(os.getenv("LOW_STOCK_THRESHOLD", "5"))
 
 # ---------------------------------------------------------------------------
