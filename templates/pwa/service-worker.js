@@ -1,6 +1,7 @@
 // King Street — Service Worker (PWA)
-// v3: estáticos usam "network-first" para nunca servir CSS/JS desatualizado.
-const CACHE = "kingstreet-v3";
+// v4: estáticos usam "network-first" e o painel (/painel/) nunca passa pelo
+// service worker — sempre vai direto à rede, para o admin ver dados atuais.
+const CACHE = "kingstreet-v4";
 const OFFLINE_URL = "/offline/";
 
 self.addEventListener("install", (event) => {
@@ -20,6 +21,9 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   const req = event.request;
   if (req.method !== "GET") return;
+
+  // Painel administrativo: nunca intercepta — o navegador busca sempre do servidor
+  if (new URL(req.url).pathname.startsWith("/painel/")) return;
 
   // Navegações: rede primeiro, cai para a página offline
   if (req.mode === "navigate") {

@@ -109,3 +109,14 @@
 .login-wrap { min-height: 100vh; display: grid; place-items: center; padding: 1rem; }
 .login-card { width: 100%; max-width: 360px; }
 .login-card .brand { font-size: 1.6rem; text-align: center; margin-bottom: 1.25rem; font-weight: 800; }
+
+/* Barra de carregamento — feedback visual a cada clique no painel */
+.nav-progress {
+  position: fixed; top: 0; left: 0; z-index: 200;
+  height: 3px; width: 0; opacity: 0;
+  background: linear-gradient(90deg, var(--accent), #fff);
+  box-shadow: 0 0 10px var(--accent);
+  transition: width .2s ease, opacity .2s ease;
+  pointer-events: none;
+}
+.nav-progress.on { opacity: 1; }

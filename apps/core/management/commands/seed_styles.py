@@ -3,41 +3,16 @@
 Cria as categorias que ainda não existem como INATIVAS — o administrador
 decide quais aparecem na loja ativando-as no painel. Categorias já
 existentes (e seus estados) são preservadas.
+
+Roda automaticamente a cada deploy (ver Procfile) e também na migração
+`products.0003_seed_styles`, para que um banco novo já nasça com todos
+os estilos disponíveis.
 """
 from django.core.management.base import BaseCommand
+from django.utils.text import slugify
 
 from apps.products.models import Category
-
-# Estilos masculinos de streetwear organizados por grupo
-STYLES = {
-    "Vestuário Superior": [
-        "Camisetas", "Camisas", "Regatas", "Polos", "Camisetas Oversized",
-        "Blusas de Frio", "Moletons", "Moletom com Capuz", "Jaquetas",
-        "Corta-Vento", "Coletes",
-    ],
-    "Vestuário Inferior": [
-        "Calças", "Jeans", "Joggers", "Calças Cargo", "Bermudas", "Shorts",
-    ],
-    "Conjuntos": [
-        "Conjuntos", "Agasalhos",
-    ],
-    "Calçados": [
-        "Tênis", "Chinelos", "Slides",
-    ],
-    "Acessórios de Cabeça": [
-        "Bonés", "Toucas", "Gorros", "Bandanas",
-    ],
-    "Acessórios": [
-        "Óculos", "Relógios", "Correntes", "Pulseiras", "Anéis",
-        "Meias", "Cintos", "Luvas",
-    ],
-    "Bolsas": [
-        "Mochilas", "Shoulder Bags", "Pochetes", "Carteiras",
-    ],
-    "Íntimo": [
-        "Cuecas",
-    ],
-}
+from apps.products.style_catalog import iter_styles
 
 
 class Command(BaseCommand):
@@ -45,13 +20,17 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         created = 0
-        for grupo, nomes in STYLES.items():
-            for nome in nomes:
-                _, was_created = Category.objects.get_or_create(
-                    name=nome, defaults={"is_active": False, "description": grupo}
-                )
-                if was_created:
-                    created += 1
+        for nome, grupo in iter_styles():
+            _, was_created = Category.objects.get_or_create(
+                name=nome,
+                defaults={
+                    "is_active": False,
+                    "description": grupo,
+                    "slug": slugify(nome)[:140],
+                },
+            )
+            if was_created:
+                created += 1
         total = Category.objects.count()
         self.stdout.write(self.style.SUCCESS(
             f"{created} novo(s) estilo(s) cadastrado(s). Total de categorias: {total}."
