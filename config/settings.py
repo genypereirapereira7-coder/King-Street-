@@ -24,12 +24,33 @@ def env_bool(name, default=False):
 # ---------------------------------------------------------------------------
 SECRET_KEY = os.getenv("SECRET_KEY", "dev-inseguro-troque-em-producao")
 DEBUG = env_bool("DEBUG", True)
-ALLOWED_HOSTS = ["127.0.0.1", "localhost", ".onrender.com"]
+
+ALLOWED_HOSTS = [
+    "127.0.0.1",
+    "localhost",
+    ".railway.app",
+    ".up.railway.app",
+    ".onrender.com",
+]
+ALLOWED_HOSTS += [
+    h.strip() for h in os.getenv("ALLOWED_HOSTS", "").split(",") if h.strip()
+]
+
 CSRF_TRUSTED_ORIGINS = [
+    "https://*.railway.app",
+    "https://*.up.railway.app",
+]
+CSRF_TRUSTED_ORIGINS += [
     o.strip()
     for o in os.getenv("CSRF_TRUSTED_ORIGINS", "").split(",")
     if o.strip()
 ]
+
+# A Railway injeta o domínio público do serviço automaticamente.
+_railway_domain = os.getenv("RAILWAY_PUBLIC_DOMAIN", "").strip()
+if _railway_domain:
+    ALLOWED_HOSTS.append(_railway_domain)
+    CSRF_TRUSTED_ORIGINS.append(f"https://{_railway_domain}")
 
 # ---------------------------------------------------------------------------
 # Aplicações
@@ -91,8 +112,19 @@ WSGI_APPLICATION = "config.wsgi.application"
 
 # ---------------------------------------------------------------------------
 # Banco de dados — PostgreSQL (produção) / SQLite (desenvolvimento)
+#
+# Na Railway basta adicionar o plugin PostgreSQL: a variável DATABASE_URL
+# é injetada automaticamente e tem prioridade sobre as demais.
 # ---------------------------------------------------------------------------
-if os.getenv("DB_ENGINE", "").strip():
+DATABASE_URL = os.getenv("DATABASE_URL", "").strip()
+
+if DATABASE_URL:
+    import dj_database_url
+
+    DATABASES = {
+        "default": dj_database_url.parse(DATABASE_URL, conn_max_age=600)
+    }
+elif os.getenv("DB_ENGINE", "").strip():
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",
